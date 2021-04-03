@@ -1,44 +1,56 @@
-<mxfile host="app.diagrams.net" modified="2021-04-03T14:16:39.589Z" agent="5.0 (Windows)" etag="nkMqgHFErY6MTUEdWZMX" version="14.5.4" type="github">
+<mxfile host="app.diagrams.net" modified="2021-04-03T22:47:07.919Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15" etag="zc1edRixik3pMgOBOmtp" version="14.5.7" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="948" dy="547" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="946" dy="558" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
-        <mxCell id="mKyuILDBuq4o-WF2PCki-4" value="Sender" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="40" y="390" width="290" height="298" as="geometry" />
+        <mxCell id="mKyuILDBuq4o-WF2PCki-4" value="Sender" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="40" y="390" width="280" height="290" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-5" value="+ field: List&lt;TCPacket&gt; buffer&#xa;+ field: int lastByteAcked&#xa;+ field: int lastByteSent&#xa;+ field: TCPTimeout timeout&#xa;+ field int sws // sliding window size&#xa;+filed int mtu&#xa;&#xa;&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-4">
-          <mxGeometry y="26" width="290" height="84" as="geometry" />
+        <mxCell id="mKyuILDBuq4o-WF2PCki-5" value="+ field: Map&lt;Integer, TCPacket&gt; ackedSegments&#xa;+ field: ConcurrentLinkedQueue&lt;TCPacket&gt; buffer&#xa;+ field: long timeout&#xa;+ field: ReentrantLock TOLock&#xa;+ field int sws // sliding window size&#xa;+ filed int mtu&#xa;+Thread ackThread&#xa;+ Thread timeoutThread&#xa;&#xa;&#xa;&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="mKyuILDBuq4o-WF2PCki-4" vertex="1">
+          <mxGeometry y="26" width="280" height="124" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-6" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-4">
-          <mxGeometry y="110" width="290" height="8" as="geometry" />
+        <mxCell id="mKyuILDBuq4o-WF2PCki-6" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="mKyuILDBuq4o-WF2PCki-4" vertex="1">
+          <mxGeometry y="150" width="280" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-7" value="+ Sender(File file, int sws, int mtu)&#xa;&#xa;+ connectionStart() // start TCP connection&#xa;+ dataTransfer(File file) // send bytes of file&#xa;+ connectionEnd()  // end TCP connection&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-4">
-          <mxGeometry y="118" width="290" height="180" as="geometry" />
+        <mxCell id="mKyuILDBuq4o-WF2PCki-7" value="+ Sender(File file, int sws, int mtu)&#xa;&#xa;+ connectionStart() // start TCP connection&#xa;+ dataTransfer(File file) // send bytes of file&#xa;+ connectionEnd()  // end TCP connection&#xa;+ computeTimeout()&#xa;+ acknowledger()&#xa;+ printOutput()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="mKyuILDBuq4o-WF2PCki-4" vertex="1">
+          <mxGeometry y="158" width="280" height="132" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-9" value="TCPEnd" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="mKyuILDBuq4o-WF2PCki-9" value="TCPEnd" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="50" y="30" width="250" height="298" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-10" value="+ field: int sws&#xa;+ field: int mtu&#xa;+ field: int port&#xa;+ field: int remotePort&#xa;+ field: int remoteIP&#xa;&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-9">
+        <mxCell id="mKyuILDBuq4o-WF2PCki-10" value="+ field: int sws&#xa;+ field: int mtu&#xa;+ field: int port&#xa;+ field: int remotePort&#xa;+ field: int remoteIP&#xa;&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="mKyuILDBuq4o-WF2PCki-9" vertex="1">
           <mxGeometry y="26" width="250" height="84" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-16" value="&lt;div align=&quot;left&quot;&gt;+main()&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-9">
+        <mxCell id="mKyuILDBuq4o-WF2PCki-16" value="&lt;div align=&quot;left&quot;&gt;+main()&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="mKyuILDBuq4o-WF2PCki-9" vertex="1">
           <mxGeometry y="110" width="250" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-11" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-9">
+        <mxCell id="mKyuILDBuq4o-WF2PCki-11" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="mKyuILDBuq4o-WF2PCki-9" vertex="1">
           <mxGeometry y="130" width="250" height="168" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-18" value="TCPTimeout" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="40" y="730" width="210" height="86" as="geometry" />
+        <mxCell id="WtdueItzKnuHgK0wQNmK-0" value="Receiver " style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="480" y="390" width="310" height="290" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-19" value="+ field: List&lt;TCPacket&gt; buffer&#xa;+ field &#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-18">
-          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        <mxCell id="WtdueItzKnuHgK0wQNmK-1" value="+ field: Map&lt;Integer, TCPacket&gt; ackedSegments&#xa;+ field: ConcurrentLinkedQueue&lt;TCPacket&gt; buffer&#xa;+ field int sws // sliding window size&#xa;+Thread ackThread&#xa;&#xa;&#xa;&#xa;&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-0">
+          <mxGeometry y="26" width="310" height="124" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-20" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-18">
-          <mxGeometry y="52" width="210" height="8" as="geometry" />
+        <mxCell id="WtdueItzKnuHgK0wQNmK-2" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-0">
+          <mxGeometry y="150" width="310" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="mKyuILDBuq4o-WF2PCki-21" value="+ method(type): type" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="mKyuILDBuq4o-WF2PCki-18">
-          <mxGeometry y="60" width="210" height="26" as="geometry" />
+        <mxCell id="WtdueItzKnuHgK0wQNmK-3" value="+ Reciever(int sws, File outputFile)&#xa;&#xa;+ connectionStart() // start TCP connection&#xa;+ dataTransfer(File file) // send bytes of file&#xa;+ connectionEnd()  // end TCP connection&#xa;+ acknowledger() &#xa;+ fileOutput()&#xa;+ printOutput()&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-0">
+          <mxGeometry y="158" width="310" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="WtdueItzKnuHgK0wQNmK-4" value="TCPpacket" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="460" y="34" width="310" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="WtdueItzKnuHgK0wQNmK-5" value="+ field: DatagramPacket packet&#xa;+ field: int seqNum&#xa;+ field: int Ack&#xa;+ field: long timestamp&#xa;+ field: int checksum&#xa;+ field: int numTransmissions" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-4">
+          <mxGeometry y="26" width="310" height="124" as="geometry" />
+        </mxCell>
+        <mxCell id="WtdueItzKnuHgK0wQNmK-6" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-4">
+          <mxGeometry y="150" width="310" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="WtdueItzKnuHgK0wQNmK-7" value="+ TCPpacket(DatagramPacket packet, int seqNum, &#xa;                    int Ack, long timestamp, int checksum)&#xa;+ computeChecksum()&#xa;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="WtdueItzKnuHgK0wQNmK-4">
+          <mxGeometry y="158" width="310" height="132" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
