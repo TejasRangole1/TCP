@@ -14,7 +14,7 @@ public class Receiver {
     public void receieve() throws Exception{
         DatagramSocket socket = new DatagramSocket(remotePort);
         byte[] buf = new byte[1024];
-        DatagramPacket packet = new DatagramPacket(buf, remotePort);
+        DatagramPacket packet = new DatagramPacket(buf, 1024);
         socket.receive(packet);
         String str = new String(packet.getData(), 0, packet.getLength());
         System.out.println("Received string: " + str);
