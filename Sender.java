@@ -43,7 +43,7 @@ public class Sender {
     }
 
     public void sendPacket() throws Exception{
-        DatagramSocket socket = new DatagramSocket();
+        DatagramSocket socket = new DatagramSocket(port);
         String test = "test message";
         InetAddress dst = InetAddress.getByName(remoteIp);
         DatagramPacket packet = new DatagramPacket(test.getBytes(), test.length(), dst, remotePort);
