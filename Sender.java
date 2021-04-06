@@ -108,7 +108,8 @@ public class Sender {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
-        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length);
+        InetAddress ip = InetAddress.getByName(remoteIp);
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, ip, remotePort);
         return outgoingPacket;
     }
 

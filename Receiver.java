@@ -73,7 +73,7 @@ public class Receiver {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
-        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length);
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, socket.getInetAddress(), port);
         return outgoingPacket;
     }
     /*
