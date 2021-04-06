@@ -73,7 +73,7 @@ public class Network {
      * @param seqNum
      * @throws IOException
      */
-    public void sendSegment(byte[] data, int flag, int ack, short checksum, int seqNum, int numTransmissions) throws IOException{
+    public void sendSegment(byte[] data, int flag, int ack, short checksum, int seqNum, int numTransmissions, String whoami) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         long timestamp = System.nanoTime();
@@ -85,19 +85,20 @@ public class Network {
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
-        System.out.println("Network.java: sendSegment(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
+        System.out.println( "FROM: " + whoami +  " Network.java: sendSegment(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         buffer.add(segment);
         socket.send(outgoingPacket);
     }
     /**
      * Receives a TCP segment
      */
-    public void receiveSegment() throws IOException{
+    public DataInputStream receiveSegment(String whoami) throws IOException{
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         socket.receive(incomingPacket);
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
-        System.out.println("Network.java: receiveSegment(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
+        System.out.println("FROM: " +  whoami + " Network.java: receiveSegment(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
+        return din;
     }
 }

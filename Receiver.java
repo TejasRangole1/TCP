@@ -7,13 +7,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class Receiver {
     
     private int port;
     private DatagramSocket socket;
-    private ByteArrayOutputStream byteStream;
-    private DataOutputStream outStream;
     private int isn = 200;
     private int mtu;
     private int nextByteExpected;
@@ -27,8 +26,6 @@ public class Receiver {
     public Receiver(int remotePort, int mtu) throws SocketException{
         this.port = remotePort;
         this.mtu = mtu;
-        byteStream = new ByteArrayOutputStream();
-        outStream = new DataOutputStream(byteStream);
         socket = new DatagramSocket(port);
         this.network = new Network(socket, remotePort); 
     }
@@ -38,7 +35,10 @@ public class Receiver {
         while(!established) {
             byte[] incomingData = new byte[HEADER_SIZE];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-            network.receiveSegment();
+            DataInputStream is = network.receiveSegment("Receiver");
+            int ack = is.readInt() + 1;
+            byte[] nothing = new byte[0];
+            network.sendSegment(nothing, SYN_ACK, ack, (short) 0, isn, 1, "Receiver");
             established = true;
         }
     }
