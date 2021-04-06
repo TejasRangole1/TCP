@@ -87,7 +87,7 @@ public class Network {
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
         System.out.println( "FROM: " + whoami +  " Network.java: sendSegment(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
-        buffer.add(segment);
+        if(whoami.equals("Sender")) buffer.add(segment);
         socket.send(outgoingPacket);
     }
     /**
