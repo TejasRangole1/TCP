@@ -79,8 +79,12 @@ public class Sender {
         byte[] nothing = new byte[0];
         while(!established){
             network.sendSegment(nothing, SYN, 0, (short) 0, seqNum, 1);
-            socket.setSoTimeout(5000);
-            network.receiveSegment();
+            try {
+                socket.setSoTimeout(5000);
+                network.receiveSegment();
+            } catch (SocketException e){
+                continue;
+            }
             established = true;
         }
         System.out.println("Sender.java: startConnection(): Connection Established!");
