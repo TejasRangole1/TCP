@@ -19,11 +19,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Sender {
 
-    private 
     
     private final int SYN = 2;
     private final int FIN = 1;
     private final int ACK = 0;
+    private final int SYN_ACK = 5;
+
 
     private long timeout;
     ReentrantLock TOLock;
@@ -35,6 +36,7 @@ public class Sender {
     private int mtu;
     private File file;
     private int seqNum;
+    private int ackNumber;
 
     private final int HEADER_SIZE = 24;
 
@@ -44,54 +46,39 @@ public class Sender {
     private Thread ackThread;
     private DatagramSocket socket;
     private ByteArrayOutputStream byteStream;
-    /*
-    private class TCPTimeout implements Runnable {
+    private DataOutputStream outStream;
 
-        @Override
-        public void run() {
-            // TODO Auto-generated method stub
-            for(TCPacket packet : buffer){
-                if(System.currentTimeMillis() - packet.getTimestamp() >= timeout){
-
-                }
-            }
-        }
-        
-    }
-    */ 
-    
-
-    public Sender(int port, int remotePort, String remoteIp){
+    public Sender(int port, int remotePort, String remoteIp, int mtu){
         this.port = port;
         this.remotePort = remotePort;
         this.remoteIp = remoteIp;
         this.timeout = 5000000000L;
+        this.mtu = mtu;
         seqNum = 0;
+        this.ackNumber = 0;
         buffer = new ConcurrentLinkedQueue<TCPacket>();
         ackedSegments = new HashMap<>();
+        byteStream = new ByteArrayOutputStream();
+        outStream = new DataOutputStream(byteStream);
     }
 
-    public void startConnection() {
+    public void startConnection() throws Exception {
         try {
             socket = new DatagramSocket(port);
             String test = "Connection Started";
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            DataOutputStream outStream = new DataOutputStream(byteStream);
-            outStream.writeInt(seqNum);
-            outStream.writeInt(seqNum + 1);
-            outStream.writeLong(System.currentTimeMillis());
-            int length = setLength(test.length(), SYN);
-            outStream.writeInt(length);
-            outStream.writeShort(0);
-            outStream.write(test.getBytes());
-            byte[] packetData = byteStream.toByteArray();
-            DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length);
-            socket.send(outgoingPacket);
+            DatagramPacket outgoingPacket = createPacket(test.getBytes(), SYN, 0, (short) 0);            
             seqNum++;
-            byte[] incomingData = new byte[HEADER_SIZE + length];
+            System.out.println("Sender.java: startConnection() sent segment= " + (seqNum - 1));
+            socket.send(outgoingPacket);
+            byte[] incomingData = new byte[HEADER_SIZE + mtu];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             socket.receive(incomingPacket);
-            
+            ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
+            DataInputStream din = new DataInputStream(bin);
+            int segment = din.readInt();
+            int ackNumber = din.readInt();
+            System.out.println("Sender.java: startConnection() receieved ACK= " + din.readInt() + " with Receiver ISN= " + ackNumber);
+            socket.close();
         } catch (SocketException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -103,30 +90,26 @@ public class Sender {
 
 
     public int setLength(int length, int flag){
-        // shifting length by 3 bits to make room for tcp flags in length field
+        // shifting length left by 3 bits to make room for tcp flags in length field
         length <<= 3;
         // flag = 0 is a TCP ACK, flag = 1 is TCP FIN, flag = 2 is TCP SYN
         int mask = 1;
-        length = (flag == 0) ? length | mask : length | (mask << flag);
+        length = length | (mask << flag);
         return length;
     }
 
-    public DatagramPacket sendPacket(byte[] data, int flag) {
-        //DatagramSocket socket = new DatagramSocket(port);
-        // String test = "test message";
-        try {
-            InetAddress dst = InetAddress.getByName(remoteIp);
-            DatagramPacket packet = new DatagramPacket(header.array(), header.limit(), dst, remotePort);
-            socket.send(packet);
-            socket.close();
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-       
+    public DatagramPacket createPacket(byte[] data, int flag, int ack, short checksum) throws Exception {
+        InetAddress dst = InetAddress.getByName(remoteIp);
+        outStream.writeInt(seqNum);
+        outStream.writeInt(ack);
+        outStream.writeLong(System.currentTimeMillis());
+        int length = setLength(data.length, flag);
+        outStream.writeInt(length);
+        outStream.writeShort(checksum);
+        outStream.write(data);
+        byte[] packetData = byteStream.toByteArray();
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length);
+        return outgoingPacket;
     }
 
     

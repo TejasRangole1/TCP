@@ -6,14 +6,16 @@ public class TCPend {
             int port = Integer.parseInt(args[1]);
             String remoteIP  = args[3];
             int remotePort = Integer.parseInt(args[5]);
-            Sender sender = new Sender(port, remotePort, remoteIP);
-            sender.sendPacket();
+            int mtu = Integer.parseInt(args[9]);
+            Sender sender = new Sender(port, remotePort, remoteIP, mtu);
+            sender.startConnection();
         }        
         else{
             // Receiver
             int port = Integer.parseInt(args[1]);
-            Receiver receiver = new Receiver(port);
-            receiver.receieve();
+            int mtu = Integer.parseInt(args[3]);
+            Receiver receiver = new Receiver(port, mtu);
+            receiver.startConnection();
         }
     }
 }
