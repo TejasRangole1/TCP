@@ -84,11 +84,14 @@ public class Network {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
+        System.out.println(whoami + " Network.java: sendSegment(): IP address used by Receiver " + socket.getInetAddress().toString());
         DatagramPacket outgoingPacket = (whoami.equals("Sender")) ? new DatagramPacket(packetData, packetData.length, remoteIP, port) :
         new DatagramPacket(packetData, packetData.length, socket.getInetAddress(), port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
         System.out.println( "FROM: " + whoami +  " Network.java: sendSegment(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
-        if(whoami.equals("Sender")) buffer.add(segment);
+        if(whoami.equals("Sender")){
+            buffer.add(segment);
+        }
         socket.send(outgoingPacket);
     }
     /**
