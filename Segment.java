@@ -1,20 +1,28 @@
 import java.net.DatagramPacket;
-import java.nio.ByteBuffer;
 
-public class TCPacket  {
+public class Segment  {
 
     private DatagramPacket packet;
     private int seqNum;
     private long timestamp;
     private int numTransmissions;
 
-    public TCPacket(DatagramPacket dPacket, int dSeqNum, long dTimestamp, int dChecksum){
+    public Segment(DatagramPacket dPacket, int dSeqNum, long dTimestamp){
         this.packet = dPacket;
         this.seqNum = dSeqNum;
         this.timestamp = dTimestamp;
+        this.numTransmissions = 1;
     }
 
     public long getTimestamp(){
         return this.timestamp;
+    }
+
+    public void incrementTransmissions(){
+        numTransmissions++;
+    }
+
+    public int getTransmissions(){
+        return numTransmissions;
     }
 }
