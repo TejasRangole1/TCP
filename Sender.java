@@ -41,7 +41,7 @@ public class Sender {
     private final int HEADER_SIZE = 24;
 
     private Map<Integer, Segment> ackedSegments;
-    private Queue<Segment> buffer;
+    private ConcurrentLinkedQueue<Segment> buffer;
     private Thread timeoutThread;
     private Thread current = Thread.currentThread();
     private DatagramSocket socket;

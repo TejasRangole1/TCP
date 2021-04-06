@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Network {
 
@@ -31,7 +32,7 @@ public class Network {
      * @param window
      * @throws UnknownHostException
      */
-    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, Queue<Segment> window) throws UnknownHostException{
+    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, ConcurrentLinkedQueue<Segment> window) throws UnknownHostException{
         this.socket = networkSocket;
         this.port = remotePort;
         this.byteStream = new ByteArrayOutputStream();
