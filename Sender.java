@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -82,7 +83,7 @@ public class Sender {
             try {
                 socket.setSoTimeout(5000);
                 network.receiveSegment();
-            } catch (SocketException e){
+            } catch (SocketTimeoutException e){
                 continue;
             }
             established = true;
