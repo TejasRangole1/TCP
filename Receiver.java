@@ -24,23 +24,24 @@ public class Receiver {
     private final int SYN_ACK = 5;
     private Network network;
 
-    public Receiver(int remotePort, int mtu){
+    public Receiver(int remotePort, int mtu) throws SocketException{
         this.port = remotePort;
         this.mtu = mtu;
         byteStream = new ByteArrayOutputStream();
         outStream = new DataOutputStream(byteStream);
+        socket = new DatagramSocket(port);
         this.network = new Network(socket, remotePort); 
     }
 
     public void startConnection() throws IOException{
         boolean established = false;
-        while(!established)
-            socket = new DatagramSocket(port);
+        while(!established) {
             byte[] incomingData = new byte[HEADER_SIZE];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             network.receiveSegment();
             established = true;
         }
     }
-   
 }
+   
+
