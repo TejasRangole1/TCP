@@ -103,7 +103,7 @@ public class Network {
         return din;
     }
 
-    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum) throws IOException{
+    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum, InetAddress remoteIP) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         long timestamp = System.nanoTime();
@@ -113,9 +113,9 @@ public class Network {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
-        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length);
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
-        System.out.println( "FROM: Receiverr"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
+        System.out.println( "FROM: Receiver"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         socket.send(outgoingPacket);
     }
 }
