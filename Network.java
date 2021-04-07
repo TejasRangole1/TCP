@@ -16,6 +16,7 @@ public class Network {
     private DatagramSocket socket;
     private int port;
     private InetAddress remoteIP;
+    private InetAddress senderIP;
     private ByteArrayOutputStream byteStream;
     private DataOutputStream outStream;
     private int mtu;
@@ -41,6 +42,7 @@ public class Network {
         this.remoteIP = InetAddress.getByName(ip);
         this.ackedSegments = acked;
         this.buffer = window;
+
     }
     /**
      * Constructor used by Receiver
@@ -98,6 +100,10 @@ public class Network {
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         socket.receive(incomingPacket);
+        if (whoami.equals("Receiver")) {
+            this.senderIP = incomingPacket.getAddress();
+            System.out.println("recieveSegment(): called by Receiver: sender IP = " + this.senderIP.getHostAddress());
+        }
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
         System.out.println("FROM: " +  whoami + " Network.java: receiveSegment(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
@@ -114,9 +120,10 @@ public class Network {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
-        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
-        Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, this.senderIP, port);
         System.out.println( "FROM: Receiver"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         socket.send(outgoingPacket);
+
+
     }
 }
