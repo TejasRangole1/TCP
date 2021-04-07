@@ -79,7 +79,7 @@ public class Sender {
         boolean established = false;
         byte[] nothing = new byte[0];
         while(!established){
-            network.sendSegment(nothing, SYN, 0, (short) 0, seqNum, 1, "Sender", null);
+            network.sendSegment(nothing, SYN, 0, (short) 0, seqNum, 1, "Sender", remoteIp);
             try {
                 socket.setSoTimeout(5000);
                 network.receiveSegment("Sender");
