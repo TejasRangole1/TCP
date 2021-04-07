@@ -39,7 +39,6 @@ public class Receiver {
             int ack = is.readInt() + 1;
             byte[] nothing = new byte[0];
             network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
-            established = true;
         }
     }
 }
