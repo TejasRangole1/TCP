@@ -110,7 +110,7 @@ public class Network {
         return din;
     }
 
-    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum, InetAddress remoteIP) throws IOException{
+    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         long timestamp = System.nanoTime();

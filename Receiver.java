@@ -35,11 +35,10 @@ public class Receiver {
         while(!established) {
             byte[] incomingData = new byte[HEADER_SIZE];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-            System.out.println("Receiver: startConnection(): incoming packet IP address: " + incomingPacket.getAddress());
             DataInputStream is = network.receiveSegment("Receiver");
             int ack = is.readInt() + 1;
             byte[] nothing = new byte[0];
-            network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn, incomingPacket.getAddress());
+            network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
             established = true;
         }
     }
