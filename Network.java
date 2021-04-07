@@ -122,10 +122,13 @@ public class Network {
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, this.senderIP, port);
-        System.out.println("Network.java: sendSegmentReceiverSide(): dst IP: " + outgoingPacket.getAddress().getHostAddress());
-        System.out.println( "FROM: Receiver"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
-        socket.send(outgoingPacket);
-
+        try {
+            socket.send(outgoingPacket);
+            System.out.println("Network.java: sendSegmentReceiverSide(): dst IP: " + outgoingPacket.getAddress().getHostAddress());
+            System.out.println( "FROM: Receiver"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
+        } catch(Exception e){
+            System.out.println("Network.java: sendSegmentReceiverSide(): FAILED");
+        }
 
     }
 }

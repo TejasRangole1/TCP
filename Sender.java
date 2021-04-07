@@ -84,7 +84,7 @@ public class Sender {
                 socket.setSoTimeout(5000);
                 network.receiveSegment("Sender");
             } catch (SocketTimeoutException e){
-                System.out.println("Seender.java: startConnection(): TIMEOUT"); 
+                System.out.println("Sender.java: startConnection(): TIMEOUT"); 
                 continue;
             }
             established = true;
