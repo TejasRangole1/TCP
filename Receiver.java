@@ -38,7 +38,7 @@ public class Receiver {
             DataInputStream is = network.receiveSegment("Receiver");
             int ack = is.readInt() + 1;
             byte[] nothing = new byte[0];
-            network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn, incomingPacket.getAddress());
+            network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
             established = true;
         }
     }
