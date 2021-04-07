@@ -74,7 +74,7 @@ public class Network {
      * @param seqNum
      * @throws IOException
      */
-    public void sendSegment(byte[] data, int flag, int ack, short checksum, int seqNum, int numTransmissions, String whoami, InetAddress receiverIP) throws IOException{
+    public void sendSegment(byte[] data, int flag, int ack, short checksum, int seqNum, int numTransmissions, String whoami, InetAddress remoteIP) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         long timestamp = System.nanoTime();
@@ -84,8 +84,7 @@ public class Network {
         outStream.writeShort(checksum);
         outStream.write(data);
         byte[] packetData = byteStream.toByteArray();
-        DatagramPacket outgoingPacket = (receiverIP != null) ? new DatagramPacket(packetData, packetData.length, remoteIP, port) :
-        new DatagramPacket(packetData, packetData.length, receiverIP, port);
+        DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
         System.out.println( "FROM: " + whoami +  " Network.java: sendSegment(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         if(whoami.equals("Sender")){
