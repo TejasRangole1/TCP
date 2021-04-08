@@ -45,15 +45,18 @@ public class Sender {
         @Override
         public void run() {
             // TODO Auto-generated method stub
-            for(Segment segment : buffer){
-                if(System.nanoTime() - segment.getTimestamp() >= timeout) {
-                    System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
-                    senderThread.interrupt();
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+            while(true) {
+                System.out.println("SenderTimeout: run(): BUFFER SIZE= " + buffer.size());
+                for(Segment segment : buffer){
+                    if(System.nanoTime() - segment.getTimestamp() >= timeout) {
+                        System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
+                        senderThread.interrupt();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
