@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,18 +93,26 @@ public class Sender {
 
     private class ReceiveThread implements Runnable {
 
-        public void startConnection(){
-            try {
-                network.receiveSegmentSenderSide();
-                established = true;
-            } catch (IOException e) {
+        public void startConnection() throws IOException{
+            while(!established) {
+                try {
+                    socket.setSoTimeout(5000);
+                    network.receiveSegmentSenderSide();
+                    established = true;
+                } catch (SocketTimeoutException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                    continue;
+                }
             }
         }
 
         public void run(){
-           startConnection();
+           try {
+            startConnection();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         }
     }
 
@@ -128,7 +137,7 @@ public class Sender {
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
         senderThread.start();
         receiveThread.start();
-        timeoutThread.start();
+        //timeoutThread.start();
     }
     
 }
