@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -121,6 +122,7 @@ public class Sender {
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
+        System.out.println(InetAddress.getLocalHost());
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
