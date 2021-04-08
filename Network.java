@@ -67,6 +67,9 @@ public class Network {
         length = length | (mask << flag);
         return length;
     }
+
+
+
     /**
      * Creates a TCP segment and sends it
      * @param data
@@ -76,7 +79,7 @@ public class Network {
      * @param seqNum
      * @throws IOException
      */
-    public void sendSegmentSenderSide(byte[] data, int flag, int ack, short checksum, int seqNum, int numTransmissions) throws IOException{
+    public void sendSegmentSenderSide(byte[] data, int flag, int ack, short checksum, int seqNum) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         long timestamp = System.nanoTime();
@@ -94,6 +97,7 @@ public class Network {
         buffer.add(segment);
         socket.send(outgoingPacket);
     }
+    
     /**
      * Receives a TCP segment
      */
@@ -105,10 +109,7 @@ public class Network {
         DataInputStream din = new DataInputStream(bin);
         int segmentNum = din.readInt();
         System.out.println("FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
-        if(buffer.peek().getSeqNum() == segmentNum){
-            Segment segment = buffer.poll();
-            ackedSegments.put(segmentNum, segment);
-        }
+        buffer.poll();
     }
 
     public DataInputStream receiveSegmentReceiverSide() throws IOException{

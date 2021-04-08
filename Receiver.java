@@ -31,15 +31,13 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        boolean established = false;
-        while(!established) {
+        while(true) {
             byte[] incomingData = new byte[HEADER_SIZE];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
             int ack = is.readInt() + 1;
             byte[] nothing = new byte[0];
             network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
-            established = true;
         }
     }
 }

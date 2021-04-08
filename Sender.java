@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Sender {
@@ -63,20 +64,11 @@ public class Sender {
 
         public void startConnection() throws IOException{
             byte[] data = new byte[0];
+            network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
             while(!established){
-                if(Thread.currentThread().interrupted()){
-                    established = true;
-                    continue;
+                if(Thread.currentThread().isInterrupted()){
+                    network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
                 }
-                while(buffer.size() >= sws){
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum, 1);
             }
         }
 
@@ -95,13 +87,18 @@ public class Sender {
 
     private class ReceiveThread implements Runnable {
 
-        public void run(){
+        public void startConnection(){
             try {
                 network.receiveSegmentSenderSide();
+                established = true;
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
+        }
+
+        public void run(){
+           startConnection();
         }
     }
 
@@ -124,6 +121,7 @@ public class Sender {
         receiveThread = new Thread(receiverRunnable);
         timeoutThread = new Thread(senderTimeout);
         senderThread.start();
+        receiveThread.start();
     }
     
 }
