@@ -97,17 +97,28 @@ public class Network {
     /**
      * Receives a TCP segment
      */
-    public DataInputStream receiveSegment(String whoami) throws IOException{
+    public void receiveSegmentSenderSide() throws IOException{
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         socket.receive(incomingPacket);
-        if (whoami.equals("Receiver")) {
-            this.senderIP = incomingPacket.getAddress();
-            System.out.println("recieveSegment(): called by Receiver: sender IP = " + this.senderIP.getHostAddress());
-        }
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
-        System.out.println("FROM: " +  whoami + " Network.java: receiveSegment(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
+        int segmentNum = din.readInt();
+        System.out.println("FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
+        if(buffer.peek().getSeqNum() == segmentNum){
+            Segment segment = buffer.poll();
+            ackedSegments.put(segmentNum, segment);
+        }
+    }
+
+    public DataInputStream receiveSegmentReceiverSide() throws IOException{
+        byte[] incomingData = new byte[HEADER_SIZE + mtu];
+        DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+        socket.receive(incomingPacket);
+        this.senderIP = incomingPacket.getAddress();
+        ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
+        DataInputStream din = new DataInputStream(bin);
+        System.out.println("FROM: Receiver " + " Network.java: receiveSegmentReceiverSide(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
         return din;
     }
 

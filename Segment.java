@@ -14,6 +14,10 @@ public class Segment  {
         this.numTransmissions = 1;
     }
 
+    public int getSeqNum(){
+        return seqNum;
+    }
+
     public long getTimestamp(){
         return this.timestamp;
     }

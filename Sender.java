@@ -1,20 +1,10 @@
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,26 +29,80 @@ public class Sender {
     private int ackNumber;
 
     private final int HEADER_SIZE = 24;
+    private boolean established = false;
 
     private Map<Integer, Segment> ackedSegments;
     private ConcurrentLinkedQueue<Segment> buffer;
+    private Thread senderThread;
+    private Thread receiveThread;
     private Thread timeoutThread;
-    private Thread current = Thread.currentThread();
     private DatagramSocket socket;
     private Network network;
 
-    private class SegmentTimeout implements Runnable {
+    private class SenderTimeout implements Runnable {
 
         @Override
         public void run() {
             // TODO Auto-generated method stub
             for(Segment segment : buffer){
-                if(System.nanoTime() - segment.getTimestamp() >= timeout){
-                    current.interrupt();
+                if(System.nanoTime() - segment.getTimestamp() >= timeout) {
+                    senderThread.interrupt();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
             }
         }
         
+    }
+
+    private class SendingThread implements Runnable {
+
+        public void startConnection() throws IOException{
+            byte[] data = new byte[0];
+            while(!established){
+                if(Thread.currentThread().interrupted()){
+                    established = true;
+                    continue;
+                }
+                while(buffer.size() >= sws){
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum, 1);
+            }
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            try {
+                startConnection();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }            
+        }
+        
+    }
+
+    private class ReceiveThread implements Runnable {
+
+        public void run(){
+            try {
+                network.receiveSegmentSenderSide();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
     public Sender(int port, int remotePort, String remoteIp, int mtu) throws SocketException, UnknownHostException{
@@ -73,25 +117,13 @@ public class Sender {
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(port);
         this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
+        Runnable senderRunnable = new SendingThread();
+        Runnable receiverRunnable = new ReceiveThread();
+        Runnable senderTimeout = new SenderTimeout();
+        senderThread = new Thread(senderRunnable);
+        receiveThread = new Thread(receiverRunnable);
+        timeoutThread = new Thread(senderTimeout);
+        senderThread.start();
     }
-
-    public void startConnection() throws Exception {
-        boolean established = false;
-        byte[] nothing = new byte[0];
-        while(!established){
-            network.sendSegmentSenderSide(nothing, SYN, 0, (short) 0, seqNum, 1);
-            try {
-                socket.setSoTimeout(5000);
-                network.receiveSegment("Sender");
-            } catch (SocketTimeoutException e){
-                System.out.println("Sender.java: startConnection(): TIMEOUT"); 
-                continue;
-            }
-            established = true;
-        }
-        System.out.println("Sender.java: startConnection(): Connection Established!");
-        socket.close();
-    }
-
     
 }
