@@ -117,7 +117,7 @@ public class Sender {
         this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
-        Runnable senderTimeout = new SenderTimeout();
+        SenderTimeout senderTimeout = new SenderTimeout();
         senderThread = new Thread(senderRunnable);
         receiveThread = new Thread(receiverRunnable);
         timeoutThread = new Thread(senderTimeout);
