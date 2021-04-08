@@ -8,7 +8,6 @@ public class TCPend {
             int remotePort = Integer.parseInt(args[5]);
             int mtu = Integer.parseInt(args[9]);
             Sender sender = new Sender(port, remotePort, remoteIP, mtu);
-            sender.startConnection();
         }        
         else{
             // Receiver
