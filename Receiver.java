@@ -31,7 +31,7 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        System.out.println(InetAddress.getLocalHost());
+        System.out.println("Receiver IP: " + InetAddress.getLocalHost());
         while(true) {
             byte[] incomingData = new byte[HEADER_SIZE];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);

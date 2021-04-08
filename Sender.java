@@ -119,10 +119,10 @@ public class Sender {
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(port);
         this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
+        System.out.println("Sender IP: " + InetAddress.getLocalHost());
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
-        System.out.println(InetAddress.getLocalHost());
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
