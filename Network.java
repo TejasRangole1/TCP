@@ -136,6 +136,7 @@ public class Network {
         try {
             socket.send(outgoingPacket);
             System.out.println("Network.java: sendSegmentReceiverSide(): dst IP: " + outgoingPacket.getAddress().getHostAddress());
+            System.out.println("Network.java: sendSegmentReceiverSide(): sender IP: " + senderIP);
             System.out.println( "FROM: Receiver"  +  " Network.java: sendSegmentReceiverSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         } catch(Exception e){
             System.out.println("Network.java: sendSegmentReceiverSide(): FAILED");
