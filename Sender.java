@@ -47,6 +47,7 @@ public class Sender {
             // TODO Auto-generated method stub
             for(Segment segment : buffer){
                 if(System.nanoTime() - segment.getTimestamp() >= timeout) {
+                    System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
                     senderThread.interrupt();
                     try {
                         Thread.sleep(1000);
@@ -122,6 +123,7 @@ public class Sender {
         timeoutThread = new Thread(senderTimeout);
         senderThread.start();
         receiveThread.start();
+        timeoutThread.start();
     }
     
 }
