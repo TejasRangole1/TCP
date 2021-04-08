@@ -91,9 +91,9 @@ public class Network {
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         outgoingPacket.setAddress(remoteIP);
-        System.out.println("Network.java: sendSegmentSenderSide(): dst IP: " + outgoingPacket.getAddress().getHostAddress());
+        System.out.println(" Network.java: sendSegmentSenderSide(): dst IP: " + outgoingPacket.getAddress().getHostAddress());
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
-        System.out.println( "FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
+        System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         buffer.add(segment);
         socket.send(outgoingPacket);
     }
@@ -108,7 +108,7 @@ public class Network {
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
         int segmentNum = din.readInt();
-        System.out.println("FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
+        System.out.println(Thread.currentThread().getName() + " FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
         buffer.poll();
     }
 

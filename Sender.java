@@ -121,9 +121,9 @@ public class Sender {
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
-        senderThread = new Thread(senderRunnable);
-        receiveThread = new Thread(receiverRunnable);
-        timeoutThread = new Thread(senderTimeout);
+        senderThread = new Thread(senderRunnable, "Sender Thread");
+        receiveThread = new Thread(receiverRunnable, "Receiver Thread");
+        timeoutThread = new Thread(senderTimeout, "Timeout Thread");
         senderThread.start();
         receiveThread.start();
         timeoutThread.start();
