@@ -97,6 +97,7 @@ public class Sender {
             while(!established) {
                 try {
                     socket.setSoTimeout(5000);
+                    System.out.println(receiveThread.getName() + " : timeout set");
                     network.receiveSegmentSenderSide();
                     established = true;
                 } catch (SocketException e){
