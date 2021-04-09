@@ -36,6 +36,7 @@ public class Receiver {
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         DataInputStream is = network.receiveSegmentReceiverSide();
         int ack = is.readInt() + 1;
+        System.out.println("Receiver: startConnection(): ack: " + ack);
         byte[] nothing = new byte[0];
         network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
     }
