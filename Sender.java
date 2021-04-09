@@ -127,7 +127,7 @@ public class Sender {
         this.ackNumber = 0;
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();
-        this.socket = new DatagramSocket(port);
+        this.socket = new DatagramSocket(remotePort);
         this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
         System.out.println("Sender IP: " + InetAddress.getLocalHost());
         Runnable senderRunnable = new SendingThread();
