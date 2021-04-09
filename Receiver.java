@@ -33,12 +33,16 @@ public class Receiver {
     public void startConnection() throws IOException{
         System.out.println("Receiver IP: " + InetAddress.getLocalHost());
         while(true) {
-            byte[] incomingData = new byte[HEADER_SIZE];
+            byte[] incomingData = new byte[4];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
             int ack = is.readInt() + 1;
             byte[] nothing = new byte[0];
-            network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
+            int i = 0;
+            while(i < 20) {
+                network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
+                i++;
+            }
         }
     }
 }

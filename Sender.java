@@ -69,7 +69,7 @@ public class Sender {
     private class SendingThread implements Runnable {
 
         public void startConnection() throws IOException{
-            byte[] data = new byte[0];
+            byte[] data = new byte[4];
             network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
             while(!established){
                 if(senderThread.isInterrupted()){
