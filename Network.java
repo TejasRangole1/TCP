@@ -101,14 +101,22 @@ public class Network {
      * Receives a TCP segment
      */
     public void receiveSegmentSenderSide() throws IOException{
+        System.out.println("receiveSegmentSenderSide: checkpoint0");
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
+        System.out.println("receiveSegmentReceiverSide: checkpoint1");
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+        System.out.println("receiveSegmentSenderSide: checkpoint2");
         socket.receive(incomingPacket);
+        System.out.println("receiveSegmentSide: checkpoint3");
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
+        System.out.println("receiveSegmentSide: checkpoint4");
         DataInputStream din = new DataInputStream(bin);
+        System.out.println("receiveSegmentSide: checkpoint5");
         int segmentNum = din.readInt();
+        System.out.println("receiveSegmentSide: checkpoint6");
         System.out.println(Thread.currentThread().getName() + " FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
         buffer.poll();
+        System.out.println("receiveSegmentSide: checkpoint7");
     }
 
     public DataInputStream receiveSegmentReceiverSide() throws IOException{
