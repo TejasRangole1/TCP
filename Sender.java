@@ -72,8 +72,13 @@ public class Sender {
             byte[] data = new byte[0];
             network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
             while(!established){
-                socket.setSoTimeout(5000);
-                network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
+                try {
+                    socket.setSoTimeout(5000);
+                    network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
+                } catch (SocketTimeoutException e){
+                    System.out.println(Thread.currentThread().getName() + " TIMEOUT");
+                    continue;
+                }
             }
         }
 
