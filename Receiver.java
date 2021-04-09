@@ -32,7 +32,7 @@ public class Receiver {
 
     public void startConnection() throws IOException{
         System.out.println("Receiver IP: " + InetAddress.getLocalHost());
-        byte[] incomingData = new byte[4];
+        byte[] incomingData = new byte[24];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         DataInputStream is = network.receiveSegmentReceiverSide();
         int ack = is.readInt() + 1;
