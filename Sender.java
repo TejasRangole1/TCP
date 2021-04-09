@@ -72,12 +72,8 @@ public class Sender {
             byte[] data = new byte[0];
             network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
             while(!established){
-                try {
-                    socket.setSoTimeout(5000);
+                if(senderThread.isInterrupted()){
                     network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
-                } catch (SocketTimeoutException e){
-                    System.out.println(Thread.currentThread().getName() + " TIMEOUT");
-                    continue;
                 }
             }
         }
@@ -99,8 +95,14 @@ public class Sender {
 
         public void startConnection() throws IOException{
             while(!established) {
-                network.receiveSegmentSenderSide();
-                established = true;
+                try {
+                    socket.setSoTimeout(5000);
+                    network.receiveSegmentSenderSide();
+                    established = true;
+                } catch (SocketException e){
+                    senderThread.interrupt();
+                    continue;
+                }
             }
         }
 
