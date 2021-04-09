@@ -34,8 +34,9 @@ public class Receiver {
         byte[] incomingData = new byte[24];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         DataInputStream is = network.receiveSegmentReceiverSide();
-        int ack = is.readInt() + 1;
-        System.out.println("Receiver.java: RECEVIED SYN: " + (ack - 1));
+        int syn = is.readInt();
+        int ack = syn + 1;
+        System.out.println("Receiver.java: RECEVIED SYN: " + syn);
         byte[] nothing = new byte[0];
         network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
     }
