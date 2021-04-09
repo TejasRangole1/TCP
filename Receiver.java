@@ -31,12 +31,11 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        System.out.println("Receiver IP: " + InetAddress.getLocalHost());
         byte[] incomingData = new byte[24];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         DataInputStream is = network.receiveSegmentReceiverSide();
         int ack = is.readInt() + 1;
-        System.out.println("Receiver: startConnection(): ack: " + ack);
+        System.out.println("Receiver.java: RECEVIED SYN: " + (ack - 1));
         byte[] nothing = new byte[0];
         network.sendSegmentReceiverSide(nothing, SYN_ACK, ack, (short) 0, isn);
     }

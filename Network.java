@@ -105,28 +105,18 @@ public class Network {
         socket.receive(incomingPacket);
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
-        System.out.println("receiveSegmentSide: checkpoint5");
         int segmentNum = din.readInt();
-        System.out.println("receiveSegmentSide: checkpoint6");
         System.out.println(Thread.currentThread().getName() + " FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
         buffer.poll();
-        System.out.println("receiveSegmentSide: checkpoint7");
     }
 
     public DataInputStream receiveSegmentReceiverSide() throws IOException{
-        System.out.println("receiveSegmentReceiverSide: checkpoint0");
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
-        System.out.println("receiveSegmentReceiverSide: checkpoint1");
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-        System.out.println("receiveSegmentReceiverSide: checkpoint2");
         socket.receive(incomingPacket);
-        System.out.println("receiveSegmentReceiverSide: checkpoint3");
         this.senderIP = incomingPacket.getAddress();
-        System.out.println("receiveSegmentReceiverSide: checkpoint4");
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
-        System.out.println("receiveSegmentReceiverSide: checkpoint5");
         DataInputStream din = new DataInputStream(bin);
-        System.out.println("FROM: Receiver " + " Network.java: receiveSegmentReceiverSide(): RECEIVED SYN= " + din.readInt() + " RECEIVED ACK= " + din.readInt());
         return din;
     }
 
