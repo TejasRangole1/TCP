@@ -69,13 +69,6 @@ public class Network {
         return length;
     }
 
-    public byte[] createSegment(int dataSize, int flag, int ack, short checksum, int seqNum, boolean isHandshake){
-        ByteBuffer packet = new ByteBuffer();
-
-    }
-
-
-
     /**
      * Creates a TCP segment and sends it
      * @param data
