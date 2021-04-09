@@ -95,6 +95,7 @@ public class Sender {
 
         public void startConnection() throws IOException{
             while(!established) {
+                /*
                 try {
                     socket.setSoTimeout(5000);
                     System.out.println(receiveThread.getName() + " : timeout set");
@@ -104,6 +105,9 @@ public class Sender {
                     senderThread.interrupt();
                     continue;
                 }
+                */
+                network.receiveSegmentSenderSide();
+                established = true;
             }
         }
 
