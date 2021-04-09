@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -68,6 +69,11 @@ public class Network {
         return length;
     }
 
+    public byte[] createSegment(int dataSize, int flag, int ack, short checksum, int seqNum, boolean isHandshake){
+        ByteBuffer packet = new ByteBuffer();
+
+    }
+
 
 
     /**
@@ -88,6 +94,7 @@ public class Network {
         outStream.writeInt(length);
         outStream.writeShort(checksum);
         outStream.write(data);
+        outStream.flush();
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
