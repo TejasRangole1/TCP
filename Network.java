@@ -34,7 +34,7 @@ public class Network {
      * @param window
      * @throws UnknownHostException
      */
-    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, ConcurrentLinkedQueue<Segment> window) throws UnknownHostException{
+    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, ConcurrentLinkedQueue<Segment> window, int isn) throws UnknownHostException{
         this.socket = networkSocket;
         this.port = remotePort;
         this.byteStream = new ByteArrayOutputStream();
@@ -43,7 +43,7 @@ public class Network {
         this.remoteIP = InetAddress.getByName(ip);
         this.ackedSegments = acked;
         this.buffer = window;
-
+        // set receiver isn to -1, change when we receive initial ack from receiver
     }
     /**
      * Constructor used by Receiver
@@ -99,15 +99,14 @@ public class Network {
     /**
      * Receives a TCP segment
      */
-    public void receiveSegmentSenderSide() throws IOException{
+    public DataInputStream receiveSegmentSenderSide() throws IOException{
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
         socket.receive(incomingPacket);
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
-        int segmentNum = din.readInt();
-        System.out.println(Thread.currentThread().getName() + " FROM: Sender"   + " Network.java: receiveSegmentSenderSide(): RECEIVED SYN= " + segmentNum + " RECEIVED ACK= " + din.readInt());
         buffer.poll();
+        return din;
     }
 
     public DataInputStream receiveSegmentReceiverSide() throws IOException{

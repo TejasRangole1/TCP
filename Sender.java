@@ -1,5 +1,7 @@
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -32,7 +34,7 @@ public class Sender {
     private int mtu;
     private File file;
     private int seqNum;
-    private int ackNumber;
+    private int ackNum;
 
     private final int HEADER_SIZE = 24;
     private boolean established = false;
@@ -45,7 +47,7 @@ public class Sender {
     private DatagramSocket socket;
     private Network network;
 
-    private Segment resendSegment;
+    private DatagramPacket resendSegment;
 
     private class SenderTimeout implements Runnable {
 
@@ -56,7 +58,8 @@ public class Sender {
                 for(Segment segment : buffer){
                     if(System.nanoTime() - segment.getTimestamp() >= timeout) {
                         System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
-                        resendSegment = segment;
+                        segment.incrementTransmissions();
+                        resendSegment = segment.getPacket();
                         senderThread.interrupt();
                         try {
                             Thread.sleep(1000);
@@ -78,7 +81,7 @@ public class Sender {
             network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
             while(!established){
                 if(senderThread.isInterrupted()){
-                    network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
+                    network.resendSegment(resendSegment);
                 }
             }
         }
@@ -111,7 +114,10 @@ public class Sender {
                     continue;
                 }
                 */
-                network.receiveSegmentSenderSide();
+                DataInputStream response = network.receiveSegmentSenderSide();
+                int ackNum = response.readInt() + 1;
+                seqNum++;
+                System.out.println("Sender.java: startConnection(): " + Thread.currentThread().getName() + " RECEIVED SYN: " + (ackNum - 1) + " SETTING ACK TO: " + ackNum + " SEQUENCE NUMBER= " + seqNum);
                 established = true;
             }
         }
