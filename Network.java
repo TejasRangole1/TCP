@@ -63,8 +63,8 @@ public class Network {
     public int setLength(int length, int flag){
         // shifting length left by 3 bits to make room for tcp flags in length field
         length <<= 3;
-        // flag = 0 is a TCP ACK, flag = 1 is TCP FIN, flag = 2 is TCP SYN
-        int mask = 1;
+        // flag = 0 is a TCP ACK, flag = 1 is TCP FIN, flag = 2 is TCP SYN, flag = 3 is NONE
+        int mask = flag == 3 ? 0 : 1;
         length = length | (mask << flag);
         return length;
     }
@@ -78,10 +78,9 @@ public class Network {
      * @param seqNum
      * @throws IOException
      */
-    public void sendSegmentSenderSide(byte[] data, int flag, int ack, short checksum, int seqNum) throws IOException{
+    public void sendSegmentSenderSide(byte[] data, int flag, int ack, short checksum, int seqNum, long timestamp) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
-        long timestamp = System.nanoTime();
         outStream.writeLong(timestamp);
         int length = setLength(data.length, flag);
         outStream.writeInt(length);
@@ -119,10 +118,9 @@ public class Network {
         return din;
     }
 
-    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum) throws IOException{
+    public void sendSegmentReceiverSide(byte[] data, int flag, int ack, short checksum, int seqNum, long timestamp) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
-        long timestamp = System.nanoTime();
         outStream.writeLong(timestamp);
         int length = setLength(data.length, flag);
         outStream.writeInt(length);
@@ -149,5 +147,23 @@ public class Network {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    /**
+     * Method to extract the length and the flag from an int
+     * @param length
+     * @return
+     */
+    public int[] extractFlagAndLength(int lengthEntry){
+        // first element is length, last element is flag
+        int[] res = new int[2];
+        int mask = 1;
+        int length = 0, flag = 0;
+        for(int i = 0; i < 3; i++){
+             flag += lengthEntry & mask;
+        }
+        length = length >> 3;
+        res[0] = length;
+        res[1] = flag;
+        return res;
     }
 }

@@ -24,6 +24,8 @@ public class Sender {
     private final int ACK = 0;
     private final int SYN_ACK = 5;
 
+
+
     private long timeout;
     ReentrantLock TOLock;
 
@@ -78,7 +80,7 @@ public class Sender {
 
         public void startConnection() throws IOException{
             byte[] data = new byte[4];
-            network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum);
+            network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum, System.nanoTime());
             while(!established){
                 if(senderThread.isInterrupted()){
                     network.resendSegment(resendSegment);
@@ -136,6 +138,7 @@ public class Sender {
         this.port = port;
         this.remotePort = remotePort;
         this.remoteIp = remoteIp;
+        this.file = file;
         this.timeout = 5000000000L;
         this.mtu = mtu;
         this.seqNum = 0;
