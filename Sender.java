@@ -139,7 +139,7 @@ public class Sender {
         this.timeout = 5000000000L;
         this.mtu = mtu;
         this.seqNum = 0;
-        this.ackNumber = 0;
+        this.ackNum = 0;
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);

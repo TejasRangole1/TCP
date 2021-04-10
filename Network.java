@@ -34,7 +34,7 @@ public class Network {
      * @param window
      * @throws UnknownHostException
      */
-    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, ConcurrentLinkedQueue<Segment> window, int isn) throws UnknownHostException{
+    public Network(DatagramSocket networkSocket, int remotePort, String ip, int mtu, Map<Integer, Segment> acked, ConcurrentLinkedQueue<Segment> window) throws UnknownHostException{
         this.socket = networkSocket;
         this.port = remotePort;
         this.byteStream = new ByteArrayOutputStream();
