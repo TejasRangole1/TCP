@@ -139,4 +139,16 @@ public class Network {
         }
 
     }
+    /**
+     * Method to resend a particular segment
+     * @param outgoingPacket
+     */
+    public void resendSegment(DatagramPacket outgoingPacket){
+        try {
+            socket.send(outgoingPacket);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }

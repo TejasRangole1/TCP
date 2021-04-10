@@ -5,7 +5,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -42,16 +45,18 @@ public class Sender {
     private DatagramSocket socket;
     private Network network;
 
+    private Segment resendSegment;
+
     private class SenderTimeout implements Runnable {
 
         @Override
         public void run() {
             // TODO Auto-generated method stub
             while(true) {
-                System.out.println("SenderTimeout: run(): BUFFER SIZE= " + buffer.size());
                 for(Segment segment : buffer){
                     if(System.nanoTime() - segment.getTimestamp() >= timeout) {
                         System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
+                        resendSegment = segment;
                         senderThread.interrupt();
                         try {
                             Thread.sleep(1000);
@@ -141,7 +146,7 @@ public class Sender {
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
         senderThread.start();
         receiveThread.start();
-        //timeoutThread.start();
+        timeoutThread.start();
     }
     
 }
