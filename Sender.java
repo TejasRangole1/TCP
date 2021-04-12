@@ -139,7 +139,10 @@ public class Sender {
             socket.setSoTimeout(5000);
             while(true) {
                 try {
-                    network.receiveSegmentSenderSide();
+                    DataInputStream is = network.receiveSegmentSenderSide();
+                    int sNum = is.readInt();
+                    int ack = is.readInt();
+                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " RECEIVED: " + sNum + " ACK: " + ack);
                     break;
                 } catch (SocketTimeoutException e) {
                     network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
