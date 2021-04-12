@@ -47,6 +47,7 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
+        System.out.println("Receiver.java: startConnection(): receiver has started");
         while(!finished) {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
