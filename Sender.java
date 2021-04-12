@@ -155,7 +155,7 @@ public class Sender {
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
         senderThread.start();
         receiveThread.start();
-        timeoutThread.start();
+        //timeoutThread.start();
     }
     
 }
