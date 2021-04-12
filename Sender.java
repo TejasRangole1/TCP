@@ -80,7 +80,8 @@ public class Sender {
 
         public void startConnection() throws IOException{
             byte[] data = new byte[4];
-            network.sendSegmentSenderSide(data, SYN, 0, (short) 0, seqNum, System.nanoTime());
+            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, System.nanoTime());
+            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
             while(!established){
                 if(senderThread.isInterrupted()){
                     network.resendSegment(resendSegment);

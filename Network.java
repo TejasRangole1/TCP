@@ -69,16 +69,7 @@ public class Network {
         return length;
     }
 
-    /**
-     * Creates a TCP segment and sends it
-     * @param data
-     * @param flag
-     * @param ack
-     * @param checksum
-     * @param seqNum
-     * @throws IOException
-     */
-    public void sendSegmentSenderSide(byte[] data, int flag, int ack, short checksum, int seqNum, long timestamp) throws IOException{
+    public DatagramPacket createSegment(byte[] data, int flag, int ack, short checksum, int seqNum, long timestamp) throws IOException{
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         outStream.writeLong(timestamp);
@@ -89,10 +80,20 @@ public class Network {
         outStream.flush();
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, remoteIP, port);
-        Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
+        return outgoingPacket;
+    }
+
+    /**
+     * Creates a TCP segment and sends it
+     * @param data
+     * @param flag
+     * @param ack
+     * @param checksum
+     * @param seqNum
+     * @throws IOException
+     */
+    public void sendSegmentSenderSide(DatagramPacket outgoingPacket, int seqNum, int ack) throws IOException{
         System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
-        buffer.add(segment);
-        System.out.println("Network.java: sendSegmentSenderSide(): port used: " + port + " remote IP: " + remoteIP.getHostAddress());
         socket.send(outgoingPacket);
     }
     
