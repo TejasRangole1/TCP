@@ -95,6 +95,7 @@ public class Sender {
                 }
             }
             */
+            /*
             byte[] data = new byte[MTU];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
@@ -109,6 +110,11 @@ public class Sender {
                     lastByteSent += MTU;
                 }
             }
+            */
+            byte[] data = new byte[MTU];
+            long timestamp = System.nanoTime();
+            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
         }
 
         @Override
@@ -127,22 +133,18 @@ public class Sender {
     private class ReceiveThread implements Runnable {
 
         public void startConnection() throws IOException{
-            while(!established) {
-                /*
+            byte[] data = new byte[MTU];
+            long timestamp = System.nanoTime();
+            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            socket.setSoTimeout(5000);
+            while(true) {
                 try {
-                    socket.setSoTimeout(5000);
-                    System.out.println(receiveThread.getName() + " : timeout set");
                     network.receiveSegmentSenderSide();
-                    established = true;
-                } catch (SocketException e){
-                    senderThread.interrupt();
+                    break;
+                } catch (SocketTimeoutException e) {
+                    network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
                     continue;
                 }
-                */
-                DataInputStream response = network.receiveSegmentSenderSide();
-                established = true;
-                int ackNum = response.readInt() + 1;
-                seqNum++;
             }
         }
 
