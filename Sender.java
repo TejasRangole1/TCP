@@ -98,9 +98,16 @@ public class Sender {
             byte[] data = new byte[MTU];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
             while(!established){
-                socket.setSoTimeout(5000);
-                network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
+                if((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && !established){
+                    senderQueue.add(segment);
+                }
+                else {
+                    outgoingPacket = senderQueue.poll().getPacket();
+                    network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
+                    lastByteSent += MTU;
+                }
             }
         }
 
