@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -33,16 +34,19 @@ public class Sender {
     private int remotePort;
     private String remoteIp;
     private int sws;
-    private int mtu;
+    private int MTU;
     private File file;
     private int seqNum;
     private int ackNum;
+    private int lastByteSent = 0;
+    private int lastByteAcked = 0;
 
     private final int HEADER_SIZE = 24;
     private boolean established = false;
 
     private Map<Integer, Segment> ackedSegments;
     private ConcurrentLinkedQueue<Segment> buffer;
+    private PriorityQueue<Segment> senderQueue;
     private Thread senderThread;
     private Thread receiveThread;
     private Thread timeoutThread;
@@ -79,13 +83,29 @@ public class Sender {
     private class SendingThread implements Runnable {
 
         public void startConnection() throws IOException{
+            /*
             byte[] data = new byte[4];
-            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, System.nanoTime());
+            long timestamp = System.nanoTime();
+            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
             while(!established){
                 if(senderThread.isInterrupted()){
                     network.resendSegment(resendSegment);
                 }
+            }
+            */
+            byte[] data = new byte[MTU];
+            long timestamp = System.nanoTime();
+            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
+            while(!established){
+                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
+                    senderQueue.add(segment);
+                }
+                outgoingPacket = senderQueue.poll().getPacket();
+                network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
+                lastByteSent += MTU;
             }
         }
 
@@ -120,6 +140,7 @@ public class Sender {
                 DataInputStream response = network.receiveSegmentSenderSide();
                 int ackNum = response.readInt() + 1;
                 seqNum++;
+                lastByteAcked += MTU;
                 System.out.println("Sender.java: startConnection(): " + Thread.currentThread().getName() + " RECEIVED SYN: " + (ackNum - 1) + " SETTING ACK TO: " + ackNum + " SEQUENCE NUMBER= " + seqNum);
                 established = true;
             }
@@ -135,19 +156,21 @@ public class Sender {
         }
     }
 
-    public Sender(int port, int remotePort, String remoteIp, int mtu) throws SocketException, UnknownHostException{
+    public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize) throws SocketException, UnknownHostException{
         this.port = port;
         this.remotePort = remotePort;
         this.remoteIp = remoteIp;
         this.file = file;
         this.timeout = 5000000000L;
-        this.mtu = mtu;
+        this.MTU = mtu;
         this.seqNum = 0;
         this.ackNum = 0;
+        this.sws = windowSize;
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);
         this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
+        senderQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum());
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
