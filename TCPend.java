@@ -7,7 +7,8 @@ public class TCPend {
             String remoteIP  = args[3];
             int remotePort = Integer.parseInt(args[5]);
             int mtu = Integer.parseInt(args[9]);
-            Sender sender = new Sender(port, remotePort, remoteIP, mtu);
+            int sws = Integer.parseInt(args[11]);
+            Sender sender = new Sender(port, remotePort, remoteIP, mtu, sws);
         }        
         else{
             // Receiver
