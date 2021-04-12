@@ -92,6 +92,7 @@ public class Network {
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
         System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         buffer.add(segment);
+        System.out.println("Network.java: sendSegmentSenderSide(): port used: " + port);
         socket.send(outgoingPacket);
     }
     
@@ -111,7 +112,7 @@ public class Network {
     public DataInputStream receiveSegmentReceiverSide() throws IOException{
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-        System.out.println("Network.java: receiveSegmentReceiverSid(): about to receive packet");
+        System.out.println("Network.java: receiveSegmentReceiverSid(): about to receive packet " + "using port: " + port);
         socket.receive(incomingPacket);
         System.out.println("Network.java: receiveSegmentReceiverSide(): received segment");
         this.senderIP = incomingPacket.getAddress();
