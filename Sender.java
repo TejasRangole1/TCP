@@ -98,14 +98,9 @@ public class Sender {
             byte[] data = new byte[MTU];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
             while(!established){
-                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
-                    senderQueue.add(segment);
-                }
-                outgoingPacket = senderQueue.poll().getPacket();
+                socket.setSoTimeout(5000);
                 network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
-                lastByteSent += MTU;
             }
         }
 
@@ -138,11 +133,9 @@ public class Sender {
                 }
                 */
                 DataInputStream response = network.receiveSegmentSenderSide();
+                established = true;
                 int ackNum = response.readInt() + 1;
                 seqNum++;
-                lastByteAcked += MTU;
-                System.out.println("Sender.java: startConnection(): " + Thread.currentThread().getName() + " RECEIVED SYN: " + (ackNum - 1) + " SETTING ACK TO: " + ackNum + " SEQUENCE NUMBER= " + seqNum);
-                established = true;
             }
         }
 
