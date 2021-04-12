@@ -52,6 +52,7 @@ public class Receiver {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
+            processSegment(is);
         }
     }
 }
