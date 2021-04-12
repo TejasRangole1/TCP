@@ -92,7 +92,7 @@ public class Network {
         Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
         System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
         buffer.add(segment);
-        System.out.println("Network.java: sendSegmentSenderSide(): port used: " + port);
+        System.out.println("Network.java: sendSegmentSenderSide(): port used: " + port + " remote IP: " + remoteIP.getHostAddress());
         socket.send(outgoingPacket);
     }
     
