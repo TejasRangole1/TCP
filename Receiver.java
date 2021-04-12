@@ -30,7 +30,7 @@ public class Receiver {
         this.port = remotePort;
         this.MTU = mtu;
         socket = new DatagramSocket(port);
-        this.network = new Network(socket, remotePort); 
+        this.network = new Network(socket, port); 
     }
 
 
