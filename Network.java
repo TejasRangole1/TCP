@@ -161,7 +161,8 @@ public class Network {
         int mask = 1;
         int length = 0, flag = 0;
         for(int i = 0; i < 3; i++){
-            flag = ((length & mask) == 1) ? flag + 1 : flag;
+            flag = ((length & mask) == 1) ? flag + mask : flag;
+            System.out.println("Network.java: extractFlagAndLength(): ITERATION: " + i + " FLAG= " + flag);
             mask <<= 1;
         }
         length = length >> 3;
