@@ -24,8 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Sender {
 
     
-    private final int SYN = 2;
-    private final int FIN = 1;
+    private final int SYN = 4;
+    private final int FIN = 2;
     private final int ACK = 0;
     private final int SYN_ACK = 5;
     private final int NONE = 3;
