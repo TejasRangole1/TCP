@@ -7,7 +7,11 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +28,7 @@ public class Sender {
     private final int FIN = 1;
     private final int ACK = 0;
     private final int SYN_ACK = 5;
-
+    private final int NONE = 3;
 
 
     private long timeout;
@@ -35,11 +39,13 @@ public class Sender {
     private String remoteIp;
     private int sws;
     private int MTU;
-    private File file;
+
+    private String filepath;
     private int seqNum;
-    private int ackNum;
     private int lastByteSent = 0;
     private int lastByteAcked = 0;
+    private int lastByteWritten = 0;
+    private int ISN;
 
     private final int HEADER_SIZE = 24;
     private boolean established = false;
@@ -82,39 +88,58 @@ public class Sender {
 
     private class SendingThread implements Runnable {
 
+        Path path = Paths.get(filepath);
+        byte[] fileBytes;
+
         public void startConnection() throws IOException{
-            /*
-            byte[] data = new byte[4];
-            long timestamp = System.nanoTime();
-            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
-            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
-            while(!established){
-                if(senderThread.isInterrupted()){
-                    network.resendSegment(resendSegment);
-                }
-            }
-            */
-            /*
             byte[] data = new byte[MTU];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
-            while(!established){
-                if((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && !established){
+            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
+        }
+        /**
+         * Method to write bytes of file into an array of bytes
+         */
+        public byte[] writeData(){
+            int endIndex = lastByteWritten;
+            // Get the amount of bytes that fit into the sliding window, if the window is full, then get 1 MTU of data
+            endIndex = (lastByteSent - lastByteAcked < sws) ? lastByteWritten + (lastByteSent - lastByteAcked) + 1 : lastByteWritten + MTU + 1;
+            // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
+            endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
+            byte[] data = Arrays.copyOfRange(fileBytes, lastByteWritten, endIndex);
+            lastByteWritten += data.length;
+            return data; 
+        }
+
+        /**
+         * Method to send bytes of file 
+         * @throws IOException
+         */
+        public void dataTransfer() throws IOException {
+            fileBytes = Files.readAllBytes(path);
+            boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
+            while(lastByteAcked != fileBytes.length) {
+                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
+                    byte[] data = writeData();
+                    DatagramPacket outgoingPacket;
+                    long timestamp = System.nanoTime();
+                    if(!init) {
+                        // first data packet to be sent must have an ACK
+                        outgoingPacket = network.createSegment(data, ACK, data.length, (short) 0, ISN, timestamp);
+                        init = true;
+                    }
+                    else {
+                        outgoingPacket = network.createSegment(data, NONE, data.length, (short) 0, seqNum, timestamp);
+                    }
+                    Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
                     senderQueue.add(segment);
+                    seqNum++;
                 }
-                else {
-                    outgoingPacket = senderQueue.poll().getPacket();
-                    network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
-                    lastByteSent += MTU;
-                }
+                Segment outgoingSegment = senderQueue.poll();
+                int seq = outgoingSegment.getSeqNum(), ack = seq + 1;
+                DatagramPacket outgoingPacket = outgoingSegment.getPacket();
+                network.sendSegmentSenderSide(outgoingPacket, seq, ack);                      
             }
-            */
-            byte[] data = new byte[MTU];
-            long timestamp = System.nanoTime();
-            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
         }
 
         @Override
@@ -122,6 +147,7 @@ public class Sender {
             // TODO Auto-generated method stub
             try {
                 startConnection();
+                // dataTransfer();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -133,22 +159,30 @@ public class Sender {
     private class ReceiveThread implements Runnable {
 
         public void startConnection() throws IOException{
-            byte[] data = new byte[MTU];
+            byte[] data = new byte[0];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
             socket.setSoTimeout(5000);
             while(true) {
                 try {
                     DataInputStream is = network.receiveSegmentSenderSide();
-                    int sNum = is.readInt();
+                    ISN = is.readInt();
                     int ack = is.readInt();
-                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " RECEIVED: " + sNum + " ACK: " + ack);
+                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " RECEIVED: " + ISN + " ACK: " + ack);
+                    seqNum++;
+                    ISN++;
                     break;
                 } catch (SocketTimeoutException e) {
                     network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
                     continue;
                 }
             }
+            
+        }
+
+        public void dataTransfer() throws IOException{
+            DataInputStream is = network.receiveSegmentSenderSide();
+            
         }
 
         public void run(){
@@ -161,15 +195,14 @@ public class Sender {
         }
     }
 
-    public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize) throws SocketException, UnknownHostException{
+    public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize, String filename) throws SocketException, UnknownHostException{
         this.port = port;
         this.remotePort = remotePort;
         this.remoteIp = remoteIp;
-        this.file = file;
+        this.filepath = filename;
         this.timeout = 5000000000L;
         this.MTU = mtu;
         this.seqNum = 0;
-        this.ackNum = 0;
         this.sws = windowSize;
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();

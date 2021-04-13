@@ -23,7 +23,7 @@ public class Receiver {
     private final int SYN_ACK = 5;
     // NONE indicates that it segment is not SYN, ACK, or FIN
     private final int NONE = 3;
-    private boolean finished = false;
+    private boolean established = false;
     private Network network;
 
     public Receiver(int remotePort, int mtu) throws SocketException{
@@ -39,7 +39,9 @@ public class Receiver {
         int nextByteExpected = seq + 1;
         int ack = is.readInt();
         long timestamp = is.readLong();
-        int[] lengthAndFlag = network.extractFlagAndLength(is.readInt());
+        int rawLength = is.readInt();
+        System.out.println("Receiver.java: processSegment(): RAW LENGTH: " +  rawLength);
+        int[] lengthAndFlag = network.extractFlagAndLength(rawLength);
         int length = lengthAndFlag[0], flag = lengthAndFlag[1];
         byte[] nothing = new byte[0];
         System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length);
@@ -47,12 +49,12 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        System.out.println("Receiver.java: startConnection(): receiver has started IP: " + InetAddress.getLocalHost().getHostAddress());
-        while(!finished) {
+        while(!established) {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
             processSegment(is);
+            established = true;
         }
     }
 }
