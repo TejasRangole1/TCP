@@ -113,9 +113,7 @@ public class Network {
     public DataInputStream receiveSegmentReceiverSide() throws IOException{
         byte[] incomingData = new byte[HEADER_SIZE + mtu];
         DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-        System.out.println("Network.java: receiveSegmentReceiverSid(): about to receive packet " + "using port: " + port);
         socket.receive(incomingPacket);
-        System.out.println("Network.java: receiveSegmentReceiverSide(): received segment");
         this.senderIP = incomingPacket.getAddress();
         ByteArrayInputStream bin = new ByteArrayInputStream(incomingData);
         DataInputStream din = new DataInputStream(bin);
@@ -163,7 +161,8 @@ public class Network {
         int mask = 1;
         int length = 0, flag = 0;
         for(int i = 0; i < 3; i++){
-             flag += lengthEntry & mask;
+            flag = ((length & mask) == 1) ? flag + 1 : flag;
+            mask <<= 1;
         }
         length = length >> 3;
         res[0] = length;
