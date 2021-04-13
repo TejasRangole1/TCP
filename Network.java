@@ -162,11 +162,12 @@ public class Network {
         int length = 0, flag = 0;
         for(int i = 0; i < 3; i++){
             int temp = length & mask;
-            flag = ((length & mask) > 0) ? flag + mask : flag;
+            flag = ((lengthEntry & mask) > 0) ? flag + mask : flag;
             System.out.println("Network.java: extractFlagAndLength(): ITERATION: " + i + " FLAG= " + flag + "BITWISE AND= " + temp);
             mask <<= 1;
         }
-        length = length >> 3;
+        
+        length = lengthEntry >> 3;
         res[0] = length;
         res[1] = flag;
         return res;
