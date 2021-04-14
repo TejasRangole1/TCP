@@ -116,6 +116,11 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            long timestamp = System.nanoTime();
+            byte[] data = new byte[0];
+            DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
+            network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
+            /*
             fileBytes = Files.readAllBytes(path);
             boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
             while(lastByteAcked != fileBytes.length) {
@@ -140,6 +145,7 @@ public class Sender {
                 DatagramPacket outgoingPacket = outgoingSegment.getPacket();
                 network.sendSegmentSenderSide(outgoingPacket, seq, ack);                      
             }
+            */
         }
 
         @Override
