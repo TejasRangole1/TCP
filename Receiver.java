@@ -55,16 +55,6 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        while(!established) {
-            byte[] incomingData = new byte[HEADER_SIZE + MTU];
-            DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-            DataInputStream is = network.receiveSegmentReceiverSide();
-            processSegment(is);
-        }
-    }
-
-    public void respondSegments() throws IOException {
-        System.out.println("Receiver.java: respondSegments(): line 67");
         while(!finished) {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
@@ -73,10 +63,6 @@ public class Receiver {
         }
     }
 
-    public void dataTransfer() throws IOException {
-        startConnection();
-        respondSegments();
-    }
 }
    
 

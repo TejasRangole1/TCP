@@ -91,13 +91,7 @@ public class Sender {
 
         Path path = Paths.get(filepath);
         byte[] fileBytes;
-
-        public void startConnection() throws IOException{
-            byte[] data = new byte[MTU];
-            long timestamp = System.nanoTime();
-            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
-        }
+        
         /**
          * Method to write bytes of file into an array of bytes
          */
@@ -121,23 +115,23 @@ public class Sender {
             while(!established) {
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             }
-            System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
+            */
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
-            System.out.println("Sender.java: " + Thread.currentThread().getName() + "SENDING  ACK: " + ISN);
+            System.out.println("Sender.java: " + Thread.currentThread().getName() + "SENDING: " + seqNum);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
-            */
+            /*
             fileBytes = Files.readAllBytes(path);
             boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
             while(lastByteAcked != fileBytes.length) {
-                while(lastByteSent - lastByteAcked == sws * MTU || senderQueue.isEmpty()){
+                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
                     byte[] data = writeData();
                     DatagramPacket outgoingPacket;
                     long timestamp = System.nanoTime();
                     if(!init) {
                         // first data packet to be sent must have an ACK
-                        outgoingPacket = network.createSegment(data, ACK, data.length, (short) 0, ISN, timestamp);
+                        outgoingPacket = network.createSegment(data, ACK, data.length, (short) 0, seqNum, timestamp);
                         init = true;
                     }
                     else {
@@ -152,6 +146,7 @@ public class Sender {
                 DatagramPacket outgoingPacket = outgoingSegment.getPacket();
                 network.sendSegmentSenderSide(outgoingPacket, seq, ack);                      
             }
+            */
         }
 
         @Override
@@ -227,7 +222,7 @@ public class Sender {
         this.timeout = 5000000000L;
         this.MTU = mtu;
         this.seqNum = 0;
-        this.sws = windowSize;
+        this.sws = windowSize * MTU;
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);

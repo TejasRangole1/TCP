@@ -16,7 +16,7 @@ public class TCPend {
             int port = Integer.parseInt(args[1]);
             int mtu = Integer.parseInt(args[3]);
             Receiver receiver = new Receiver(port, mtu);
-            receiver.dataTransfer();
+            receiver.startConnection();
         }
     }
 }
