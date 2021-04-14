@@ -153,7 +153,9 @@ public class Sender {
             // TODO Auto-generated method stub
             try {
                 startConnection();
-                dataTransfer();
+                if(established) {
+                    dataTransfer();
+                }
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -183,6 +185,7 @@ public class Sender {
                     continue;
                 }
             }
+            established = true;
         }
 
         public void dataTransfer() throws IOException{
