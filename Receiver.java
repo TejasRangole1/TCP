@@ -24,6 +24,7 @@ public class Receiver {
     // NONE indicates that it segment is not SYN, ACK, or FIN
     private final int NONE = 3;
     private boolean established = false;
+    private boolean finished = false;
     private Network network;
 
     public Receiver(int remotePort, int mtu) throws SocketException{
@@ -60,6 +61,20 @@ public class Receiver {
             DataInputStream is = network.receiveSegmentReceiverSide();
             processSegment(is);
         }
+    }
+
+    public void respondSegments() throws IOException {
+        while(!finished) {
+            byte[] incomingData = new byte[HEADER_SIZE + MTU];
+            DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+            DataInputStream is = network.receiveSegmentReceiverSide();
+            processSegment(is);
+        }
+    }
+
+    public void dataTransfer() throws IOException {
+        startConnection();
+        respondSegments();
     }
 }
    
