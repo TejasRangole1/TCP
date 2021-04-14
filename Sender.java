@@ -49,6 +49,7 @@ public class Sender {
 
     private final int HEADER_SIZE = 24;
     private boolean established = false;
+    private boolean finished = false;
 
     private Map<Integer, Segment> ackedSegments;
     private ConcurrentLinkedQueue<Segment> buffer;
@@ -195,10 +196,12 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            DataInputStream is = network.receiveSegmentSenderSide();
-            senderQueue.poll();
-            int seq = is.readInt(), ack = is.readInt();
-            System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);            
+            while(!finished) {
+                DataInputStream is = network.receiveSegmentSenderSide();
+                senderQueue.poll();
+                int seq = is.readInt(), ack = is.readInt();
+                System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);
+            }            
         }
 
         public void run(){
