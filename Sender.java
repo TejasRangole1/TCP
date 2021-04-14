@@ -157,13 +157,17 @@ public class Sender {
         @Override
         public void run() {
             // TODO Auto-generated method stub
-            try {
-                //startConnection();
-                System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
-                dataTransfer();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            while(!finished) {
+                try {
+                    //startConnection();
+                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
+                    if(established) {
+                        dataTransfer();
+                    }
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }            
         }
         
@@ -192,7 +196,6 @@ public class Sender {
                 }
             }
             established = true;
-            senderThread.start();
         }
 
         public void dataTransfer() throws IOException{
@@ -207,6 +210,7 @@ public class Sender {
         public void run(){
            try {
             startConnection();
+            dataTransfer();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -234,9 +238,10 @@ public class Sender {
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
-        //senderThread.start();
+        senderThread.start();
         receiveThread.start();
         //timeoutThread.start();
     }
+
     
 }
