@@ -44,15 +44,13 @@ public class Receiver {
         int length = lengthAndFlag[0], flag = lengthAndFlag[1];
         byte[] nothing = new byte[0];
         System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length + " ACK: " + ack);
-        if(flag == ACK){
-            established = true;
-        }
         if(flag == SYN) {
             network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, isn, timestamp);
         }
         else {
             network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, seq, timestamp);
         }
+        established = (flag == ACK) ? true : false;
     }
 
     public void startConnection() throws IOException{
