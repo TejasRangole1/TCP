@@ -160,7 +160,6 @@ public class Sender {
             while(!finished) {
                 try {
                     //startConnection();
-                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
                     if(established) {
                         dataTransfer();
                     }
@@ -204,6 +203,7 @@ public class Sender {
                 senderQueue.poll();
                 int seq = is.readInt(), ack = is.readInt();
                 System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);
+                lastByteAcked = ack;
             }            
         }
 

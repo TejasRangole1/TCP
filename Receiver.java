@@ -64,6 +64,7 @@ public class Receiver {
     }
 
     public void respondSegments() throws IOException {
+        System.out.println("Receiver.java: respondSegments(): line 67");
         while(!finished) {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
