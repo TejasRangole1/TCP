@@ -153,6 +153,7 @@ public class Sender {
             // TODO Auto-generated method stub
             try {
                 startConnection();
+                System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
                 if(established) {
                     dataTransfer();
                 }
