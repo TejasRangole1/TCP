@@ -69,6 +69,7 @@ public class Network {
     }
 
     public DatagramPacket createSegment(byte[] data, int flag, int ack, short checksum, int seqNum, long timestamp) throws IOException{
+        System.out.println(Thread.currentThread().getName() + " Network.java: createSegment(): FLAG: " + flag);
         outStream.writeInt(seqNum);
         outStream.writeInt(ack);
         outStream.writeLong(timestamp);
