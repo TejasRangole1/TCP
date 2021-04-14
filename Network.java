@@ -7,7 +7,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,7 +21,6 @@ public class Network {
     private DataOutputStream outStream;
     private int mtu;
     private final int HEADER_SIZE = 24;
-    private Map<Integer, Segment> ackedSegments;
     private Queue<Segment> buffer;
     /**
      * Constructor used by Sender
@@ -41,7 +39,6 @@ public class Network {
         this.outStream = new DataOutputStream(byteStream); 
         this.mtu = mtu;
         this.remoteIP = InetAddress.getByName(ip);
-        this.ackedSegments = acked;
         this.buffer = window;
         // set receiver isn to -1, change when we receive initial ack from receiver
     }
@@ -163,10 +160,8 @@ public class Network {
         for(int i = 0; i < 3; i++){
             int temp = length & mask;
             flag = ((lengthEntry & mask) > 0) ? flag + mask : flag;
-            System.out.println("Network.java: extractFlagAndLength(): ITERATION: " + i + " FLAG= " + flag + "BITWISE AND= " + temp);
             mask <<= 1;
         }
-        
         length = lengthEntry >> 3;
         res[0] = length;
         res[1] = flag;

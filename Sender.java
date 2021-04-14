@@ -177,7 +177,6 @@ public class Sender {
                     continue;
                 }
             }
-            
         }
 
         public void dataTransfer() throws IOException{

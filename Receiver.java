@@ -40,12 +40,14 @@ public class Receiver {
         int ack = is.readInt();
         long timestamp = is.readLong();
         int rawLength = is.readInt();
-        System.out.println("Receiver.java: processSegment(): RAW LENGTH: " +  rawLength);
         int[] lengthAndFlag = network.extractFlagAndLength(rawLength);
         int length = lengthAndFlag[0], flag = lengthAndFlag[1];
         byte[] nothing = new byte[0];
         System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length);
-        network.sendSegmentReceiverSide(nothing, SYN_ACK, nextByteExpected, (short) 0, isn, timestamp);
+        if(flag == ACK){
+            established = true;
+        }
+        network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, seq, timestamp);
     }
 
     public void startConnection() throws IOException{
@@ -54,7 +56,6 @@ public class Receiver {
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
             processSegment(is);
-            established = true;
         }
     }
 }
