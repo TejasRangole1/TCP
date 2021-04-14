@@ -116,6 +116,8 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            while(!established) {
+            }
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
@@ -154,9 +156,7 @@ public class Sender {
             try {
                 startConnection();
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
-                if(established) {
-                    dataTransfer();
-                }
+                dataTransfer();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
