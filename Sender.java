@@ -119,7 +119,6 @@ public class Sender {
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
-            System.out.println("Sender.java: " + Thread.currentThread().getName() + "SENDING: " + seqNum);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
             /*
             fileBytes = Files.readAllBytes(path);
@@ -202,13 +201,11 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            while(!finished) {
-                DataInputStream is = network.receiveSegmentSenderSide();
-                senderQueue.poll();
-                int seq = is.readInt(), ack = is.readInt();
-                System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);
-                lastByteAcked = ack;
-            }            
+            DataInputStream is = network.receiveSegmentSenderSide();
+            senderQueue.poll();
+            int seq = is.readInt(), ack = is.readInt();
+            System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);
+            lastByteAcked = ack;
         }
 
         public void run(){

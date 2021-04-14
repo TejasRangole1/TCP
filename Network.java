@@ -90,7 +90,7 @@ public class Network {
      * @throws IOException
      */
     public void sendSegmentSenderSide(DatagramPacket outgoingPacket, int seqNum, int ack) throws IOException{
-        System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SYN= " + seqNum + " SENT ACK= " + ack);
+        System.out.println( Thread.currentThread().getName() + " FROM: Sender"  +  " Network.java: sendSegmentSenderSide(): SENT SEQ= " + seqNum + " SENT ACK= " + ack);
         socket.send(outgoingPacket);
     }
     
