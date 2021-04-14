@@ -47,7 +47,12 @@ public class Receiver {
         if(flag == ACK){
             established = true;
         }
-        network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, seq, timestamp);
+        if(flag == SYN) {
+            network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, isn, timestamp);
+        }
+        else {
+            network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, seq, timestamp);
+        }
     }
 
     public void startConnection() throws IOException{
