@@ -147,7 +147,7 @@ public class Sender {
             // TODO Auto-generated method stub
             try {
                 startConnection();
-                // dataTransfer();
+                dataTransfer();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
