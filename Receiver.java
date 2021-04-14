@@ -17,9 +17,9 @@ public class Receiver {
     private final int MTU;
     private int nextByteExpected;
     private final int HEADER_SIZE = 24; 
-    private final int SYN = 2;
-    private final int FIN = 1;
-    private final int ACK = 0;
+    private final int SYN = 4;
+    private final int FIN = 2;
+    private final int ACK = 1;
     private final int SYN_ACK = 5;
     // NONE indicates that it segment is not SYN, ACK, or FIN
     private final int NONE = 3;

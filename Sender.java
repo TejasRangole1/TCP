@@ -26,7 +26,7 @@ public class Sender {
     
     private final int SYN = 4;
     private final int FIN = 2;
-    private final int ACK = 0;
+    private final int ACK = 1;
     private final int SYN_ACK = 5;
     private final int NONE = 3;
 
@@ -117,7 +117,7 @@ public class Sender {
          */
         public void dataTransfer() throws IOException {
             while(!established) {
-                System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
+                // System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             }
             System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             long timestamp = System.nanoTime();
