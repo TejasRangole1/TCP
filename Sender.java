@@ -196,7 +196,9 @@ public class Sender {
 
         public void dataTransfer() throws IOException{
             DataInputStream is = network.receiveSegmentSenderSide();
-            
+            senderQueue.poll();
+            int seq = is.readInt(), ack = is.readInt();
+            System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);            
         }
 
         public void run(){
