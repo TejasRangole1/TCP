@@ -123,6 +123,7 @@ public class Sender {
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
+            System.out.println("Sender.java: " + Thread.currentThread().getName() + "SENDING  ACK: " + ISN);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
             /*
             fileBytes = Files.readAllBytes(path);
