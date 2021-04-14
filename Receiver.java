@@ -55,7 +55,7 @@ public class Receiver {
     }
 
     public void startConnection() throws IOException{
-        while(!establish) {
+        while(!finished) {
             byte[] incomingData = new byte[HEADER_SIZE + MTU];
             DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
             DataInputStream is = network.receiveSegmentReceiverSide();
