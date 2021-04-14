@@ -152,6 +152,7 @@ public class Sender {
         @Override
         public void run() {
             // TODO Auto-generated method stub
+            /*
             while(!finished) {
                 try {
                     //startConnection();
@@ -162,7 +163,14 @@ public class Sender {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-            }            
+            } 
+            */
+            try {
+                dataTransfer();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }           
         }
         
     }
