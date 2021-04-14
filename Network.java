@@ -128,6 +128,7 @@ public class Network {
         outStream.writeInt(length);
         outStream.writeShort(checksum);
         outStream.write(data);
+        outStream.flush();
         byte[] packetData = byteStream.toByteArray();
         DatagramPacket outgoingPacket = new DatagramPacket(packetData, packetData.length, this.senderIP, port);
         try {
