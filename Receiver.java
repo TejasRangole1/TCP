@@ -43,7 +43,7 @@ public class Receiver {
         int[] lengthAndFlag = network.extractFlagAndLength(rawLength);
         int length = lengthAndFlag[0], flag = lengthAndFlag[1];
         byte[] nothing = new byte[0];
-        System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length);
+        System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length + " ACK: " + ack);
         if(flag == ACK){
             established = true;
         }
