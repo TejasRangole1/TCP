@@ -131,7 +131,7 @@ public class Sender {
             fileBytes = Files.readAllBytes(path);
             boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
             while(lastByteAcked != fileBytes.length) {
-                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
+                while(lastByteSent - lastByteAcked == sws * MTU || senderQueue.isEmpty()){
                     byte[] data = writeData();
                     DatagramPacket outgoingPacket;
                     long timestamp = System.nanoTime();
