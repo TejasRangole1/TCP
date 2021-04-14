@@ -59,10 +59,12 @@ public class Network {
      */
     public int setLength(int length, int flag){
         // shifting length left by 3 bits to make room for tcp flags in length field
+        System.out.println(Thread.currentThread().getName() + " setLength(): flag passed in: " + flag);
         length <<= 3;
         // flag = 0 is a TCP ACK, flag = 1 is TCP FIN, flag = 2 is TCP SYN, flag = 3 is NONE
         int mask = flag == 3 ? 0 : flag;
         length = length | flag;
+        System.out.println(Thread.currentThread().getName() + " setLength(): calculated length: " + length);
         return length;
     }
 
