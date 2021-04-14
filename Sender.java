@@ -117,7 +117,9 @@ public class Sender {
          */
         public void dataTransfer() throws IOException {
             while(!established) {
+                System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             }
+            System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
