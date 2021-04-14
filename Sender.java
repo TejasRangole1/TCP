@@ -116,6 +116,7 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            /*
             while(!established) {
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             }
@@ -125,7 +126,7 @@ public class Sender {
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
             System.out.println("Sender.java: " + Thread.currentThread().getName() + "SENDING  ACK: " + ISN);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
-            /*
+            */
             fileBytes = Files.readAllBytes(path);
             boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
             while(lastByteAcked != fileBytes.length) {
@@ -150,14 +151,13 @@ public class Sender {
                 DatagramPacket outgoingPacket = outgoingSegment.getPacket();
                 network.sendSegmentSenderSide(outgoingPacket, seq, ack);                      
             }
-            */
         }
 
         @Override
         public void run() {
             // TODO Auto-generated method stub
             try {
-                startConnection();
+                //startConnection();
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
                 dataTransfer();
             } catch (IOException e) {
@@ -190,6 +190,7 @@ public class Sender {
                 }
             }
             established = true;
+            senderThread.start();
         }
 
         public void dataTransfer() throws IOException{
@@ -227,7 +228,7 @@ public class Sender {
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
-        senderThread.start();
+        //senderThread.start();
         receiveThread.start();
         //timeoutThread.start();
     }
