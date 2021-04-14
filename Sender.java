@@ -174,6 +174,7 @@ public class Sender {
             byte[] data = new byte[0];
             long timestamp = System.nanoTime();
             DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
+            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
             socket.setSoTimeout(5000);
             while(true) {
                 try {
