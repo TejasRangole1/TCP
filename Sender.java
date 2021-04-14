@@ -195,6 +195,7 @@ public class Sender {
                 }
             }
             established = true;
+            senderThread.start();
         }
 
         public void dataTransfer() throws IOException{
@@ -238,7 +239,7 @@ public class Sender {
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
-        senderThread.start();
+        // senderThread.start();
         receiveThread.start();
         //timeoutThread.start();
     }
