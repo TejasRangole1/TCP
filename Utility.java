@@ -1,4 +1,6 @@
+import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -12,38 +14,41 @@ public class Utility {
     private final int FIN = 2;
     private final int ACK = 1;
     private final int SYN_ACK = 5;
-    private final int DATA = 3;
+    private final int FIN_ACK = 3;
 
     private final int HEADER_SIZE = 24;
     private int MTU;
     private InetAddress remoteIP;
     private int remotePort;
+    private DatagramSocket socket;
 
-    public Utility(int mtu, int port) {
+    public Utility(int mtu, int port, DatagramSocket dataSocket) {
         this.MTU = mtu;
         this.remotePort = port;
+        this.socket = dataSocket;
     }
 
-    public Utility(int mtu, String ip, int port) throws UnknownHostException {
+    public Utility(int mtu, String ip, int port, DatagramSocket dataSocket) throws UnknownHostException {
         this.MTU = mtu;
+        this.socket = dataSocket;
         remoteIP = InetAddress.getByName(ip);
         this.remotePort = port;
     }
 
     private String getFlagOutput(int flag) {
         if(flag == 4){
-            return "SYN";
+            return "S";
         }
         else if(flag == 5) {
-            return "SYN ACK";
+            return "S A";
         }
         else if(flag == 1) {
-            return "ACK";
+            return "A";
         }
         else if(flag == 2) {
-            return "FIN";
+            return "F";
         }
-        return "DATA";
+        return "F A";
     }
 
     private byte[] serialize(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) {
@@ -56,13 +61,12 @@ public class Utility {
         bb.putInt(length);
         bb.putShort(checksum);
         bb.put(payloadData);
-        System.out.println("SENT: " + byteSeqNum + " ACKNOWLEDGEMENT: " + ack + " TIMESTAMP: " + timestamp + " LENGTH: " + length + " FLAG: " + getFlagOutput(flag));
         return data;
     }
 
-    public void deserialize(byte[] data) {
+    public Segment deserialize(byte[] data) {
         ByteBuffer bb = ByteBuffer.wrap(data);
-        int seqeuence = bb.getInt();
+        int sequence = bb.getInt();
         int acknowledgement = bb.getInt();
         long timestamp = bb.getLong();
         int length = bb.getInt();
@@ -72,16 +76,35 @@ public class Utility {
         byte[] payload = new byte[length];
         bb.get(payload);
         String flagOutput = getFlagOutput(flag);
-        System.out.println("RECEIVED SEQUENCE: " + seqeuence + " ACK: " + acknowledgement + " TIMESTAMP: " + timestamp + " LENGTH: " + length + " FLAG: " + flagOutput);
+        // Use an array to store the sequence number received as well as the flag of the incoming packet
+        Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
+        System.out.println("rcv " + timestamp + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
+        return incomingSegment;
     }
 
-    public void setIP(InetAddress senderIP) {
-        remoteIP = senderIP;
-    }
-
-    public DatagramPacket encapsulatePacket(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData){
+    public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) throws IOException{
         byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, checksum, payloadData);
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
-        return outgoingPacket;
+        socket.send(outgoingPacket);
+        String flagOutput = getFlagOutput(flag);
+        System.out.println("snd " + timestamp + " " + flag + " " + byteSeqNum + " " + length + " " + ack);
     }
+
+    public Segment receivePacketSender() throws IOException{
+        byte[] incomingData = new byte[HEADER_SIZE + MTU];
+        DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+        socket.receive(incomingPacket);
+        return deserialize(incomingPacket.getData());
+    }
+
+    public Segment receivePacketReceiver() throws IOException {
+        byte[] incomingData = new byte[HEADER_SIZE + MTU];
+        DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+        socket.receive(incomingPacket);
+        remoteIP = incomingPacket.getAddress();
+        return deserialize(incomingPacket.getData());
+    }
+
+
+
 }

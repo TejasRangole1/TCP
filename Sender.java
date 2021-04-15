@@ -65,26 +65,11 @@ public class Sender {
     private DatagramPacket resendSegment;
 
     private class SenderTimeout implements Runnable {
-
+        
         @Override
         public void run() {
             // TODO Auto-generated method stub
-            while(true) {
-                for(Segment segment : buffer){
-                    if(System.nanoTime() - segment.getTimestamp() >= timeout) {
-                        System.out.println("SenderTimeout: run(): SEGMENT " + segment.getSeqNum() + " TIMED OUT");
-                        segment.incrementTransmissions();
-                        resendSegment = segment.getPacket();
-                        senderThread.interrupt();
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
+            
         }
         
     }
@@ -113,15 +98,20 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            byte[] payload = new byte[0];
+            long timestamp = System.nanoTime();
+            Segment segment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
             /*
             while(!established) {
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
             }
             */
+            /*
             long timestamp = System.nanoTime();
             byte[] data = new byte[0];
             DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
             network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
+            */
             /*
             fileBytes = Files.readAllBytes(path);
             boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
@@ -153,7 +143,7 @@ public class Sender {
         @Override
         public void run() {
             try {
-                dataTransfer();
+                //dataTransfer();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -167,24 +157,20 @@ public class Sender {
         public void startConnection() throws IOException{
             byte[] data = new byte[0];
             long timestamp = System.nanoTime();
-            DatagramPacket outgoingPacket = senderUtility.encapsulatePacket(0, 1, timestamp, data.length, SYN, (short) 0, data);
-            socket.send(outgoingPacket);
+            Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, data.length, SYN, (short) 0, data);
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
             socket.setSoTimeout(5000);
-            while(true) {
+            while(!established) {
                 try {
-                    byte[] payload = new byte[HEADER_SIZE];
-                    DatagramPacket incomingPacket = new DatagramPacket(payload, payload.length);
-                    socket.receive(incomingPacket);
-                    senderUtility.deserialize(payload);
+                    senderUtility.receivePacketSender();
+                    established = true;
                     seqNum++;
-                    ISN++;
-                    break;
                 } catch (SocketTimeoutException e) {
-                    network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
-                    continue;
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
                 }
             }
-            established = true;
             senderThread.start();
         }
 
@@ -199,7 +185,7 @@ public class Sender {
         public void run(){
            try {
             startConnection();
-            dataTransfer();
+            //dataTransfer();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -220,7 +206,7 @@ public class Sender {
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);
         // this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
-        senderUtility = new Utility(MTU, remoteIp, remotePort);
+        senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum());
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
