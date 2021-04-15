@@ -39,13 +39,29 @@ public class Receiver {
 
    
     public void startConnection() throws IOException{
-        while(!finished) {
-            Segment segment = receiverUtility.receivePacketReceiver();
-            int sequence = segment.getSeqNum();
+        Segment incomingSegment;
+        while(!established) {
+            incomingSegment = receiverUtility.receivePacketReceiver();
+            int incomingFlag = incomingSegment.getFlag();
+            if(incomingFlag == ACK) {
+                established = true;
+                continue;
+            }
+            int sequence = incomingSegment.getSeqNum();
             acknowledgement = sequence + 1;
-            long timestamp = segment.getTimestamp();
+            long timestamp = incomingSegment.getTimestamp();
             int flag = SYN_ACK;
-            short checksum = segment.getChecksum();
+            short checksum = incomingSegment.getChecksum();
+            byte[] data = new byte[0];
+            receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
+        }
+        while(!finished) {
+            incomingSegment = receiverUtility.receivePacketReceiver();
+            int sequence = incomingSegment.getSeqNum();
+            acknowledgement = sequence + 1;
+            long timestamp = incomingSegment.getTimestamp();
+            int flag = ACK;
+            short checksum = incomingSegment.getChecksum();
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
         }

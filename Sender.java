@@ -100,7 +100,9 @@ public class Sender {
         public void dataTransfer() throws IOException {
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment segment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
             /*
             while(!established) {
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
@@ -142,7 +144,12 @@ public class Sender {
 
         @Override
         public void run() {
-            
+            try {
+                dataTransfer();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         
     }
@@ -170,11 +177,8 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            DataInputStream is = network.receiveSegmentSenderSide();
-            senderQueue.poll();
-            int seq = is.readInt(), ack = is.readInt();
-            System.out.println("Receiver.java: " + Thread.currentThread().getName() + " dataTransfer(): " + " RECEIVED SEGMENT: " + seq + " ACK: " + ack);
-            lastByteAcked = ack;
+            senderUtility.receivePacketSender();
+            seqNum++;
         }
 
         public void run(){
