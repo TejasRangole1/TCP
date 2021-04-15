@@ -4,6 +4,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to create DatagramPackets
@@ -78,7 +79,8 @@ public class Utility {
         String flagOutput = getFlagOutput(flag);
         // Use an array to store the sequence number received as well as the flag of the incoming packet
         Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
-        System.out.println("rcv " + timestamp + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
+        long timestampOutput = TimeUnit.MILLISECONDS.convert(timestamp, TimeUnit.NANOSECONDS);
+        System.out.println("rcv " + timestampOutput + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
         return incomingSegment;
     }
 
@@ -87,7 +89,8 @@ public class Utility {
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
         socket.send(outgoingPacket);
         String flagOutput = getFlagOutput(flag);
-        System.out.println("snd " + timestamp + " " + flag + " " + byteSeqNum + " " + length + " " + ack);
+        long timestampOutput = TimeUnit.MILLISECONDS.convert(timestamp, TimeUnit.NANOSECONDS);
+        System.out.println("snd " + timestampOutput + " " + flagOutput + " " + byteSeqNum + " " + length + " " + ack);
     }
 
     public Segment receivePacketSender() throws IOException{
