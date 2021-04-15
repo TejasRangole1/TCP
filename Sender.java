@@ -142,12 +142,7 @@ public class Sender {
 
         @Override
         public void run() {
-            try {
-                //dataTransfer();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }           
+            
         }
         
     }

@@ -26,40 +26,28 @@ public class Receiver {
     private boolean established = false;
     private boolean finished = false;
     private Network network;
+    private Utility receiverUtility;
+    private int acknowledgement;
 
     public Receiver(int remotePort, int mtu) throws SocketException{
         this.port = remotePort;
         this.MTU = mtu;
         socket = new DatagramSocket(port);
-        this.network = new Network(socket, port); 
+        this.network = new Network(socket, port);
+        receiverUtility = new Utility(MTU, port, socket); 
     }
 
-
-    public void processSegment(DataInputStream is) throws IOException{
-        int seq = is.readInt();
-        int nextByteExpected = seq + 1;
-        int ack = is.readInt();
-        long timestamp = is.readLong();
-        int rawLength = is.readInt();
-        int[] lengthAndFlag = network.extractFlagAndLength(rawLength);
-        int length = lengthAndFlag[0], flag = lengthAndFlag[1];
-        byte[] nothing = new byte[0];
-        System.out.println("Receiver.java: RECEVIED SEQ NUM: " + seq + " FLAG: " + flag + " LENGTH: " + length + " ACK: " + ack);
-        if(flag == SYN) {
-            network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, isn, timestamp);
-        }
-        else {
-            network.sendSegmentReceiverSide(nothing, ACK, nextByteExpected, (short) 0, seq, timestamp);
-        }
-        established = (flag == ACK) ? true : false;
-    }
-
+   
     public void startConnection() throws IOException{
         while(!finished) {
-            byte[] incomingData = new byte[HEADER_SIZE + MTU];
-            DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
-            DataInputStream is = network.receiveSegmentReceiverSide();
-            processSegment(is);
+            Segment segment = receiverUtility.receivePacketReceiver();
+            int sequence = segment.getSeqNum();
+            acknowledgement = sequence + 1;
+            long timestamp = segment.getTimestamp();
+            int flag = SYN_ACK;
+            short checksum = segment.getChecksum();
+            byte[] data = new byte[0];
+            receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
         }
     }
 
