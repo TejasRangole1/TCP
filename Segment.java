@@ -52,7 +52,7 @@ public class Segment  {
     public short getChecksum() {
         return checksum;
     }
-        _
+        
     public long getTimestamp(){
         return this.timestamp;
     }
