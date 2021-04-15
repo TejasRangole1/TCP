@@ -28,7 +28,7 @@ public class Sender {
     private final int FIN = 2;
     private final int ACK = 1;
     private final int SYN_ACK = 5;
-    private final int NONE = 3;
+    private final int DATA = 3;
 
 
     private long timeout;
@@ -59,6 +59,8 @@ public class Sender {
     private Thread timeoutThread;
     private DatagramSocket socket;
     private Network network;
+
+    private Utility senderUtility;
 
     private DatagramPacket resendSegment;
 
@@ -150,20 +152,6 @@ public class Sender {
 
         @Override
         public void run() {
-            // TODO Auto-generated method stub
-            /*
-            while(!finished) {
-                try {
-                    //startConnection();
-                    if(established) {
-                        dataTransfer();
-                    }
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            } 
-            */
             try {
                 dataTransfer();
             } catch (IOException e) {
@@ -179,15 +167,15 @@ public class Sender {
         public void startConnection() throws IOException{
             byte[] data = new byte[0];
             long timestamp = System.nanoTime();
-            DatagramPacket outgoingPacket = network.createSegment(data, SYN, 0, (short) 0, seqNum, timestamp);
-            network.sendSegmentSenderSide(outgoingPacket, seqNum, 0);
+            DatagramPacket outgoingPacket = senderUtility.encapsulatePacket(0, 1, timestamp, data.length, SYN, (short) 0, data);
+            socket.send(outgoingPacket);
             socket.setSoTimeout(5000);
             while(true) {
                 try {
-                    DataInputStream is = network.receiveSegmentSenderSide();
-                    ISN = is.readInt();
-                    int ack = is.readInt();
-                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " RECEIVED: " + ISN + " ACK: " + ack);
+                    byte[] payload = new byte[HEADER_SIZE];
+                    DatagramPacket incomingPacket = new DatagramPacket(payload, payload.length);
+                    socket.receive(incomingPacket);
+                    senderUtility.deserialize(payload);
                     seqNum++;
                     ISN++;
                     break;
@@ -231,7 +219,8 @@ public class Sender {
         this.buffer = new ConcurrentLinkedQueue<Segment>();
         this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);
-        this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
+        // this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
+        senderUtility = new Utility(MTU, remoteIp, remotePort);
         senderQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum());
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
@@ -239,9 +228,7 @@ public class Sender {
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
-        // senderThread.start();
         receiveThread.start();
-        //timeoutThread.start();
     }
 
     
