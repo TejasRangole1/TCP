@@ -85,7 +85,7 @@ public class Sender {
                 endIndex += sws - (lastByteSent - lastByteAcked);
             }
             else {
-                endIndex += lastByteWritten + MTU;
+                endIndex += MTU;
             }
             System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
