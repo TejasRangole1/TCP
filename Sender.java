@@ -109,7 +109,7 @@ public class Sender {
                     Segment toSend = senderQueue.poll();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
-                    lastByteSent = (toSend.getLength() == 0) ? 1 : lastByteSent + toSend.getLength();
+                    lastByteSent += toSend.getLength();
                 }
             }
             finished = true;
@@ -154,8 +154,8 @@ public class Sender {
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
-                lastByteAcked = lastSegmentAcked.getAck();
-                while(!senderQueue.isEmpty() && lastByteAcked == senderQueue.peek().getSeqNum() + 1) {
+                lastByteAcked = lastSegmentAcked.getSeqNum();
+                while(!senderQueue.isEmpty() && lastByteAcked == senderQueue.peek().getSeqNum()) {
                     Segment top = senderQueue.poll();
                     lastByteAcked += top.getLength();
                 }
