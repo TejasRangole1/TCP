@@ -96,6 +96,7 @@ public class Sender {
             senderQueue.add(outgoingSegment);
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
             while(lastByteAcked < fileBytes.length) {
+                System.out.println("Sender.java: " + Thread.currentThread().getName() + " lastByteSent= " + lastByteSent + " lastByteAcked= " + lastByteAcked); 
                 while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
@@ -105,11 +106,9 @@ public class Sender {
                 }
                 if(!senderQueue.isEmpty()) {
                     Segment toSend = senderQueue.poll();
-
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     lastByteSent += toSend.getLength();
-                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " length= " + toSend.getLength() + " lastByteSent= " + lastByteSent); 
                 }
             }
             finished = true;
