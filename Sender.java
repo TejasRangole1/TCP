@@ -30,6 +30,7 @@ public class Sender {
     private final int ACK = 1;
     private final int SYN_ACK = 5;
     private final int FIN_ACK = 3;
+    private final int DATA = -1;
     private long timeout;
 
     private int port;
