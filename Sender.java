@@ -154,24 +154,26 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            while(!finished)
+            while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = incomingSegment.getAck();
                 senderQueue.poll();
             }
         }
+        
 
         public void run(){
-           try {
-            startConnection();
-            dataTransfer();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            try {
+                startConnection();
+                dataTransfer();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
+
 
     public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize, String filename) throws SocketException, UnknownHostException{
         this.port = port;
