@@ -95,8 +95,8 @@ public class Sender {
             Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
-            System.out.println("Sender.java: " + Thread.currentThread().getName() + " dataTransfer(): sws= " + sws);
             while(lastByteAcked < fileBytes.length) {
+                System.out.println("Sender.java: " + Thread.currentThread().getName() + " dataTransfer(): lastByteSent= " + lastByteSent + " lastByteAcked= " + lastByteAcked);
                 while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
