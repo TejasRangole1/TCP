@@ -144,6 +144,7 @@ public class Sender {
             outgoingSegment.getChecksum(), outgoingSegment.getPayload());
                 }
             }
+            socket.setSoTimeout(0);
             senderThread.start();
         }
 
