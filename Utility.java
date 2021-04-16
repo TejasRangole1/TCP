@@ -49,7 +49,10 @@ public class Utility {
         else if(flag == 2) {
             return "F";
         }
-        return "F A";
+        else if(flag == 3) {
+            return "F A";
+        }
+        return "A D";
     }
 
     private byte[] serialize(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) {

@@ -8,6 +8,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.PriorityQueue;
+
+import javax.swing.text.Segment;
 
 public class Receiver {
     
@@ -28,15 +31,16 @@ public class Receiver {
     private Network network;
     private Utility receiverUtility;
     private int acknowledgement;
+    private PriorityQueue<Segment> receiverQueue;
 
     public Receiver(int remotePort, int mtu) throws SocketException{
         this.port = remotePort;
         this.MTU = mtu;
         socket = new DatagramSocket(port);
         this.network = new Network(socket, port);
-        receiverUtility = new Utility(MTU, port, socket); 
+        receiverUtility = new Utility(MTU, port, socket);
+        receiverQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum()); 
     }
-
    
     public void startConnection() throws IOException{
         Segment incomingSegment;
@@ -55,15 +59,17 @@ public class Receiver {
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
         }
+        nextByteExpected = 1;
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
-            int sequence = incomingSegment.getSeqNum();
-            acknowledgement = sequence + 1;
-            long timestamp = incomingSegment.getTimestamp();
-            int flag = ACK;
-            short checksum = incomingSegment.getChecksum();
-            byte[] data = new byte[0];
-            receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
+            receiverQueue.add(incomingSegment);
+            while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
+                Segment top = receiverQueue.poll();
+                nextByteExpected += top.getLength();
+            }
+            int sequence  = nextByteExpected;
+            nextByteExpected++;
+            receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, flag, checksum, data);
         }
     }
 

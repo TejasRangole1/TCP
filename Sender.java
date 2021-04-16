@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
+
 public class Sender {
 
     
@@ -28,7 +30,7 @@ public class Sender {
     private final int FIN = 2;
     private final int ACK = 1;
     private final int SYN_ACK = 5;
-    private final int DATA = 3;
+    private final int FIN_ACK = 3;
     private long timeout;
 
     private int port;
@@ -105,11 +107,11 @@ public class Sender {
                 while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
-                    int sequence = (init == true) ? 1 : seqNum;
+                    int sequence = (init == true) ? 1 : seqNum + data.length;
                     init = (init == true) ? false : init;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
-                    seqNum++;
+                    seqNum += data.length;
                 }
                 Segment toSend = senderQueue.poll();
                 senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
@@ -158,7 +160,10 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getAck();
-                senderQueue.poll();
+                while(!senderQueue.isEmpty() && lastByteAcked == senderQueue.peek().getSeqNum() + 1) {
+                    Segment top = senderQueue.poll();
+                    lastByteAcked += top.getLength();
+                }
             }
         }
         
