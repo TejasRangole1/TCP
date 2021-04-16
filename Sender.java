@@ -157,7 +157,7 @@ public class Sender {
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
-                lastByteAcked = incomingSegment.getAck();
+                lastByteAcked = lastSegmentAcked.getAck();
                 senderQueue.poll();
             }
         }
@@ -184,10 +184,7 @@ public class Sender {
         this.MTU = mtu;
         this.seqNum = 0;
         this.sws = windowSize * MTU;
-        this.buffer = new ConcurrentLinkedQueue<Segment>();
-        this.ackedSegments = new HashMap<>();
         this.socket = new DatagramSocket(remotePort);
-        // this.network = new Network(socket, remotePort, remoteIp, mtu, ackedSegments, buffer);
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum());
         Runnable senderRunnable = new SendingThread();
