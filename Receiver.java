@@ -10,7 +10,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.PriorityQueue;
 
-import javax.swing.text.Segment;
 
 public class Receiver {
     
