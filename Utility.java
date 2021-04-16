@@ -173,7 +173,7 @@ public class Utility {
         if (!odd)
             return sum;
 
-        System.out.println("Data length is odd");
+        //System.out.println("Data length is odd");
 
         byte[] data1 = new byte[2];
         data1[1] = data[data.length-1];
