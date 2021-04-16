@@ -80,15 +80,19 @@ public class Sender {
          * Method to write bytes of file into an array of bytes
          */
         public byte[] writeData(){
-            int endIndex = seqNum;
-            // Get the amount of bytes that fit into the sliding window, if the window is full, then get 1 MTU of data
-            endIndex = (lastByteSent - lastByteAcked < sws) ? seqNum + (lastByteSent - lastByteAcked) + 1 : seqNum + MTU + 1;
-            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
+            int endIndex = lastByteWritten;
+            if(sws - (lastByteSent - lastByteAcked) < MTU) {
+                endIndex = sws - (lastByteSent - lastByteAcked);
+            }
+            else {
+                endIndex = lastByteWritten + MTU;
+            }
+            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
             endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
-            System.out.println("CHECKPOINT 2: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
-            byte[] data = Arrays.copyOfRange(fileBytes, seqNum, endIndex);
-            seqNum += data.length;
+            System.out.println("CHECKPOINT 2: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
+            byte[] data = Arrays.copyOfRange(fileBytes, lastByteWritten, endIndex);
+            lastByteWritten += data.length;
             return data; 
         }
 
@@ -109,7 +113,7 @@ public class Sender {
                 while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
-                    int sequence = (init == true) ? 1 : seqNum;
+                    int sequence = (init == true) ? 1 : lastByteWritten;
                     init = (init == true) ? false : init;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
