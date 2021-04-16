@@ -20,7 +20,7 @@ public class Sender {
     private final int ACK = 1;
     private final int SYN_ACK = 5;
     private final int FIN_ACK = 3;
-    private final int DATA = -1;
+    private final int DATA = 0;
     private long timeout;
 
     private int port;
@@ -96,7 +96,6 @@ public class Sender {
             senderQueue.add(outgoingSegment);
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
             while(lastByteAcked < fileBytes.length) {
-                System.out.println("Sender.java: " + Thread.currentThread().getName() + " lastByteSent= " + lastByteSent + " lastByteAcked= " + lastByteAcked); 
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();

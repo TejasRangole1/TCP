@@ -19,6 +19,7 @@ public class Utility {
     private final int ACK = 1;
     private final int SYN_ACK = 5;
     private final int FIN_ACK = 3;
+    private final int DATA = 0;
 
     private final int HEADER_SIZE = 24;
     private int MTU;
