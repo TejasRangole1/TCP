@@ -81,7 +81,7 @@ public class Sender {
          */
         public byte[] writeData(){
             int endIndex = lastByteWritten;
-            if(sws - (lastByteSent - lastByteAcked) < MTU) {
+            if(sws - (lastByteSent - lastByteAcked) < MTU && sws - (lastByteSent - lastByteAcked) > 0) {
                 endIndex += sws - (lastByteSent - lastByteAcked);
             }
             else {
