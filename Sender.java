@@ -87,10 +87,9 @@ public class Sender {
             else {
                 endIndex += MTU;
             }
-            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
             endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
-            System.out.println("CHECKPOINT 2: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
+            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
             byte[] data = Arrays.copyOfRange(fileBytes, lastByteWritten, endIndex);
             lastByteWritten += data.length;
             return data; 
