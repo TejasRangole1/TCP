@@ -109,7 +109,7 @@ public class Sender {
                     Segment toSend = senderQueue.poll();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
-                    lastByteSent += toSend.getLength() + 1;
+                    lastByteSent += toSend.getLength();
                 }
             }
             finished = true;
