@@ -83,9 +83,10 @@ public class Sender {
             int endIndex = seqNum;
             // Get the amount of bytes that fit into the sliding window, if the window is full, then get 1 MTU of data
             endIndex = (lastByteSent - lastByteAcked < sws) ? seqNum + (lastByteSent - lastByteAcked) + 1 : seqNum + MTU + 1;
+            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
             endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
-            System.out.println(Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
+            System.out.println("CHECKPOINT 2: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
             byte[] data = Arrays.copyOfRange(fileBytes, seqNum, endIndex);
             seqNum += data.length;
             return data; 
