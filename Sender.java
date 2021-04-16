@@ -1,25 +1,15 @@
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Sender {
@@ -112,8 +102,9 @@ public class Sender {
                 while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
-                    int sequence = (init == true) ? 1 : lastByteWritten;
-                    init = (init == true) ? false : init;
+                    //int sequence = (init == true) ? 1 : lastByteWritten - data.length + 1;
+                    // init = (init == true) ? false : init;
+                    int sequence = lastByteWritten - data.length + 1;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                 }
