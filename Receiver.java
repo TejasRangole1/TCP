@@ -68,7 +68,7 @@ public class Receiver {
                 timestamp = top.getTimestamp();
                 nextByteExpected += top.getLength();
             }
-            int sequence  = nextByteExpected;
+            int sequence  = nextByteExpected - 1;
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, ACK, (short) 0, data);
         }
