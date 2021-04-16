@@ -1,8 +1,11 @@
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -79,6 +82,16 @@ public class Utility {
         short checksum = bb.getShort();
         byte[] payload = new byte[length];
         bb.get(payload);
+
+        short computedChecksum = computeChecksum(payload, acknowledgement, sequence, timestamp, length);
+        System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
+        if (computedChecksum != checksum){
+            System.out.println("checksums dont match");
+            // return null (for later)
+        } else {
+            System.out.println("checksums match!");
+        }
+
         String flagOutput = getFlagOutput(flag);
         // Use an array to store the sequence number received as well as the flag of the incoming packet
         Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
@@ -88,7 +101,9 @@ public class Utility {
     }
 
     public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) throws IOException{
-        byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, checksum, payloadData);
+        short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length);
+        System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
+        byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, computedChecksum, payloadData);
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
         socket.send(outgoingPacket);
         String flagOutput = getFlagOutput(flag);
@@ -109,6 +124,76 @@ public class Utility {
         socket.receive(incomingPacket);
         remoteIP = incomingPacket.getAddress();
         return deserialize(incomingPacket.getData());
+    }
+
+    public short computeChecksum(byte[] data, int ack, int seqNum, long timestamp, int length){
+        int sum = 0;
+        
+        sum = addByteArray(ByteBuffer.allocate(4).putInt(seqNum).array(), sum);
+        sum = addByteArray(ByteBuffer.allocate(4).putInt(ack).array(), sum);
+        sum = addByteArray(ByteBuffer.allocate(Long.BYTES).putLong(timestamp).array(), sum);
+        sum = addByteArray(ByteBuffer.allocate(4).putInt(length).array(), sum);
+        sum = addByteArray(data, sum);
+
+        return (short) ~sum;
+
+    }
+
+    /**
+     * takes 32 bit array, divides it into 16 bit arrays, and adds them to the given sum.
+     * 17th bit carry over is also handled in this method
+     * @param data
+     * @param sum from previous calculation 
+     * @return new sum
+     */
+    public int addByteArray(byte[] data, int sum){
+
+        if (data.length == 0) return sum;
+
+        boolean odd = (data.length%2 == 0)? false: true; //data will have an extra byte at the end if length is odd
+        int halfLength = data.length/2;
+        int start = 0;
+        
+        if (data.length > 1){
+            for (int i = 0; i < halfLength; i++){ // truncated data by 2 bytes (16 bits) every loop and add it to sum
+                byte[] data1 = Arrays.copyOfRange(data, start, start+2);
+                ByteBuffer wrapped = ByteBuffer.wrap(data1); 
+                short num = wrapped.getShort(); 
+
+                sum += num;
+                if (BigInteger.valueOf(sum).testBit(17)){
+                    sum = killKthBit(sum, 17);
+                    sum += 1; 
+                }
+
+                start += 2;
+            }
+        }
+
+        if (!odd)
+            return sum;
+
+        System.out.println("Data length is odd");
+
+        byte[] data1 = new byte[2];
+        data1[1] = data[data.length-1];
+
+        ByteBuffer wrapped = ByteBuffer.wrap(data1); 
+        short num = wrapped.getShort(); 
+
+        sum+= num;
+        if (BigInteger.valueOf(sum).testBit(17)){
+            sum = killKthBit(sum, 17);
+            sum += 1; 
+        }
+        
+        return sum; 
+
+    }
+
+    int killKthBit(int n, int k){
+        // kth bit of n is being set to 0 by this operation 
+        return n & ~(1 << (k - 1)) ;
     }
 
 
