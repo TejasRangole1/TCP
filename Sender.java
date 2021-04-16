@@ -199,7 +199,7 @@ public class Sender {
         this.sws = windowSize * MTU;
         this.socket = new DatagramSocket(remotePort);
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
-        senderQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum());
+        senderQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum());
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
