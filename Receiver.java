@@ -62,7 +62,7 @@ public class Receiver {
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
-            long timestamp;
+            long timestamp = 0;
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 Segment top = receiverQueue.poll();
                 timestamp = top.getTimestamp();
