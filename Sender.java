@@ -79,7 +79,6 @@ public class Sender {
             }
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
             endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
-            System.out.println("CHECKPOINT 1: " + Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + lastByteWritten + " endIndex: " + endIndex);
             byte[] data = Arrays.copyOfRange(fileBytes, lastByteWritten, endIndex);
             lastByteWritten += data.length;
             return data; 
@@ -94,16 +93,13 @@ public class Sender {
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
-            // senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            // outgoingSegment.getChecksum(), outgoingSegment.getPayload());
             senderQueue.add(outgoingSegment);
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
+            System.out.println("Sender.java: " + Thread.currentThread().getName() + " dataTransfer(): sws= " + sws);
             while(lastByteAcked < fileBytes.length) {
                 while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
-                    //int sequence = (init == true) ? 1 : lastByteWritten - data.length + 1;
-                    // init = (init == true) ? false : init;
                     int sequence = lastByteWritten - data.length + 1;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
