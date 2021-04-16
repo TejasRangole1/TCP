@@ -39,7 +39,7 @@ public class Receiver {
         socket = new DatagramSocket(port);
         this.network = new Network(socket, port);
         receiverUtility = new Utility(MTU, port, socket);
-        receiverQueue = new PriorityQueue<Segment>((a, b) -> a.getSeqNum() - b.getSeqNum()); 
+        receiverQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum()); 
     }
    
     public void startConnection() throws IOException{

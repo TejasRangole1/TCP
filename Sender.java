@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.text.Segment;
 
 public class Sender {
 

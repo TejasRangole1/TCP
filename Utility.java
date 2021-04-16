@@ -84,12 +84,12 @@ public class Utility {
         bb.get(payload);
 
         short computedChecksum = computeChecksum(payload, acknowledgement, sequence, timestamp, length);
-        System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
+        // System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
         if (computedChecksum != checksum){
-            System.out.println("checksums dont match");
+            //System.out.println("checksums dont match");
             // return null (for later)
         } else {
-            System.out.println("checksums match!");
+            //System.out.println("checksums match!");
         }
 
         String flagOutput = getFlagOutput(flag);
@@ -102,7 +102,7 @@ public class Utility {
 
     public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) throws IOException{
         short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length);
-        System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
+        // System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
         byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, computedChecksum, payloadData);
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
         socket.send(outgoingPacket);
