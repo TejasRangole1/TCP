@@ -85,7 +85,8 @@ public class Sender {
             endIndex = (lastByteSent - lastByteAcked < sws) ? seqNum + (lastByteSent - lastByteAcked) + 1 : seqNum + MTU + 1;
             // If there is less than one MTU left or less than sws number of bytes, then get the rest of the bytes in the file
             endIndex = (endIndex >= fileBytes.length) ? fileBytes.length : endIndex;
-            byte[] data = Arrays.copyOfRange(fileBytes, lastByteWritten, endIndex);
+            System.out.println(Thread.currentThread().getName() + " Sender.java: writeData(): SEQUENCE: " + seqNum + " endIndex: " + endIndex);
+            byte[] data = Arrays.copyOfRange(fileBytes, seqNum, endIndex);
             seqNum += data.length;
             return data; 
         }
@@ -111,7 +112,6 @@ public class Sender {
                     init = (init == true) ? false : init;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
-                    seqNum += data.length;
                 }
                 Segment toSend = senderQueue.poll();
                 senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
