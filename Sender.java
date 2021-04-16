@@ -29,10 +29,7 @@ public class Sender {
     private final int ACK = 1;
     private final int SYN_ACK = 5;
     private final int DATA = 3;
-
-
     private long timeout;
-    ReentrantLock TOLock;
 
     private int port;
     private int remotePort;
@@ -51,14 +48,12 @@ public class Sender {
     private boolean established = false;
     private boolean finished = false;
 
-    private Map<Integer, Segment> ackedSegments;
-    private ConcurrentLinkedQueue<Segment> buffer;
     private PriorityQueue<Segment> senderQueue;
     private Thread senderThread;
     private Thread receiveThread;
     private Thread timeoutThread;
     private DatagramSocket socket;
-    private Network network;
+    private Segment lastSegmentAcked;
 
     private Utility senderUtility;
 
@@ -98,48 +93,30 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            fileBytes = Files.readAllBytes(path);
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
-            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
-            /*
-            while(!established) {
-                System.out.println("Sender.java: " + Thread.currentThread().getName() + " ESTABLISHED: " + established);
-            }
-            */
-            /*
-            long timestamp = System.nanoTime();
-            byte[] data = new byte[0];
-            DatagramPacket outgoingPacket = network.createSegment(data, ACK, ISN, (short) 0, seqNum, timestamp);
-            network.sendSegmentSenderSide(outgoingPacket, seqNum, ISN);
-            */
-            /*
-            fileBytes = Files.readAllBytes(path);
-            boolean init = false; // indicates whether we are sending the first byte of data, in which case we should send an ACK
-            while(lastByteAcked != fileBytes.length) {
-                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()){
+            // senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            // outgoingSegment.getChecksum(), outgoingSegment.getPayload());
+            senderQueue.add(outgoingSegment);
+            boolean init = true; // indicates that the first data packet should be sent with sequence number 1
+            while(lastByteAcked < fileBytes.length) {
+                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) {
                     byte[] data = writeData();
-                    DatagramPacket outgoingPacket;
-                    long timestamp = System.nanoTime();
-                    if(!init) {
-                        // first data packet to be sent must have an ACK
-                        outgoingPacket = network.createSegment(data, ACK, data.length, (short) 0, seqNum, timestamp);
-                        init = true;
-                    }
-                    else {
-                        outgoingPacket = network.createSegment(data, NONE, data.length, (short) 0, seqNum, timestamp);
-                    }
-                    Segment segment = new Segment(outgoingPacket, seqNum, timestamp);
+                    timestamp = System.nanoTime();
+                    int sequence = (init == true) ? 1 : seqNum;
+                    init = (init == true) ? false : init;
+                    Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                     seqNum++;
                 }
-                Segment outgoingSegment = senderQueue.poll();
-                int seq = outgoingSegment.getSeqNum(), ack = seq + 1;
-                DatagramPacket outgoingPacket = outgoingSegment.getPacket();
-                network.sendSegmentSenderSide(outgoingPacket, seq, ack);                      
+                Segment toSend = senderQueue.poll();
+                senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
+                toSend.getChecksum(), toSend.getPayload()); 
+                lastByteSent += toSend.getLength();
             }
-            */
+            finished = true;
         }
 
         @Override
@@ -177,14 +154,18 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            senderUtility.receivePacketSender();
-            seqNum++;
+            while(!finished)
+                lastSegmentAcked = senderUtility.receivePacketSender();
+                lastSegmentAcked.incrementAcks();
+                lastByteAcked = incomingSegment.getAck();
+                senderQueue.poll();
+            }
         }
 
         public void run(){
            try {
             startConnection();
-            //dataTransfer();
+            dataTransfer();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

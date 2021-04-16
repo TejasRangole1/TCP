@@ -17,6 +17,7 @@ public class Segment  {
     private int numTransmissions = 1;
     private short checksum;
     private byte[] payload;
+    private int totalAcks;
 
     public Segment(int sequence, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData){
         this.byteSequenceNumber = sequence;
@@ -27,6 +28,7 @@ public class Segment  {
         this.checksum = checksum;
         this.payload = payloadData;
         this.numTransmissions = 1;
+        totalAcks = 0;
     }
 
     public int getSeqNum(){
@@ -63,6 +65,14 @@ public class Segment  {
 
     public int getTransmissions(){
         return numTransmissions;
+    }
+
+    public int getTotalAcks() {
+        return totalAcks;
+    }
+
+    public void incrementAcks() {
+        totalAcks++;
     }
 
 }
