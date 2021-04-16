@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
+
 
 public class Sender {
 
@@ -109,7 +111,7 @@ public class Sender {
             senderQueue.add(outgoingSegment);
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
             while(lastByteAcked < fileBytes.length) {
-                while(lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) {
+                while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
                     int sequence = (init == true) ? 1 : lastByteWritten;
@@ -117,10 +119,12 @@ public class Sender {
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                 }
-                Segment toSend = senderQueue.poll();
-                senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
-                toSend.getChecksum(), toSend.getPayload()); 
-                lastByteSent += toSend.getLength();
+                if(!senderQueue.isEmpty()) {
+                    Segment toSend = senderQueue.poll();
+                    senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
+                    toSend.getChecksum(), toSend.getPayload()); 
+                    lastByteSent += toSend.getLength();
+                }
             }
             finished = true;
         }
