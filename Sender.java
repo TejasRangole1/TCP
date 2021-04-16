@@ -97,7 +97,7 @@ public class Sender {
             boolean init = true; // indicates that the first data packet should be sent with sequence number 1
             while(lastByteAcked < fileBytes.length) {
                 System.out.println("Sender.java: " + Thread.currentThread().getName() + " lastByteSent= " + lastByteSent + " lastByteAcked= " + lastByteAcked); 
-                while((lastByteSent - lastByteAcked == sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
+                while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
                     int sequence = lastByteWritten - data.length + 1;
