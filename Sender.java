@@ -105,10 +105,11 @@ public class Sender {
                 }
                 if(!senderQueue.isEmpty()) {
                     Segment toSend = senderQueue.poll();
+
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
-                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " length= " + toSend.getLength()); 
                     lastByteSent += toSend.getLength();
+                    System.out.println("Sender.java: " + Thread.currentThread().getName() + " length= " + toSend.getLength() + " lastByteSent= " + lastByteSent); 
                 }
             }
             finished = true;
