@@ -62,13 +62,16 @@ public class Receiver {
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
+            long timestamp;
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 Segment top = receiverQueue.poll();
+                timestamp = top.getTimestamp();
                 nextByteExpected += top.getLength();
             }
             int sequence  = nextByteExpected;
             nextByteExpected++;
-            receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, flag, checksum, data);
+            byte[] data = new byte[0];
+            receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, ACK, (short) 0, data);
         }
     }
 
