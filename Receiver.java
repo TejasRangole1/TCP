@@ -67,7 +67,7 @@ public class Receiver {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
             if(nextByteExpected < incomingSegment.getSeqNum()){
-                receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getData());
+                receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getPayload());
                 continue;
             }
             long timestamp = 0;
@@ -77,7 +77,6 @@ public class Receiver {
                 timestamp = lastSegmentAcked.getTimestamp();
                 nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + lastSegmentAcked.getLength() : 1;
             }
-
             int sequence  = nextByteExpected - 1;
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, ACK, (short) 0, data);
