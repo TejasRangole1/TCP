@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.swing.text.Segment;
+
 
 
 public class Sender {
@@ -107,7 +109,7 @@ public class Sender {
                     }
                 }
                 if(!senderQueue.isEmpty()) {
-                    Segment toSend = senderQueue.peek();
+                    Segment toSend = senderQueue.poll();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     lastByteSent += toSend.getLength();
@@ -154,7 +156,6 @@ public class Sender {
         public void dataTransfer() throws IOException{
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
-                senderQueue.poll();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
             }
