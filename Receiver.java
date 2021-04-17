@@ -73,7 +73,7 @@ public class Receiver {
             long timestamp = 0;
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 lastSegmentAcked = receiverQueue.poll();
-                fs.write(lastSegmentAcked.getData());
+                fs.write(lastSegmentAcked.getPayload());
                 timestamp = lastSegmentAcked.getTimestamp();
                 nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + lastSegmentAcked.getLength() : 1;
             }
