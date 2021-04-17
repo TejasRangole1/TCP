@@ -9,8 +9,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.swing.text.Segment;
 
 
 
@@ -60,15 +63,22 @@ public class Sender {
         @Override
         public void run() {
             // TODO Auto-generated method stub
-            
+            while(!finished) {
+                Iterator it = sentPackets.iterator();
+                while(it.hasNext()) {
+                    Segment top = it.next();
+                    if (System.nanoTime() - top.getTimestamp() >= timeout) {
+                        long timestamp = System.nanoTime();
+                        Segment resentSegment = new Segment(top.getSeqNum(), top.getAck(), timestamp, top.getLength(), top.getFlag(), top.getChecksum(), top.getPayload());
+                        senderQueue.add(resentSegment);
+                    }
+                }
+            }
         }
         
     }
 
     private class SendingThread implements Runnable {
-
-        
-        
         /**
          * Method to write bytes of file into an array of bytes
          */
@@ -92,14 +102,16 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
-           
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
-                System.out.println("Sender.java: " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked);
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
+                    if(!senderQueue.isEmpty() && senderQueue.peek().getSeqNum() < lastByteSent) {
+                        lastByteSent -= senderQueue.peek().getLength();
+                        continue;
+                    }
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
                     int sequence = lastByteWritten - data.length + 1;
@@ -114,7 +126,6 @@ public class Sender {
                     lastByteSent += toSend.getLength();
                 }
             }
-            finished = true;
         }
 
         @Override
