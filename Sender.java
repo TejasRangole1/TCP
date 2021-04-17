@@ -151,6 +151,7 @@ public class Sender {
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
+                    senderUtility.receivePacketSender();
                     established = true;
                     seqNum++;
                 } catch (SocketTimeoutException e) {
