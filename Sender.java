@@ -154,11 +154,6 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
-                int ack = lastSegmentAcked.getAck();
-                while(!senderQueue.isEmpty() && lastByteAcked < ack){
-                    Segment top = senderQueue.poll();
-                    lastByteAcked += top.getLength();
-                }
             }
         }
         
