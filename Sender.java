@@ -26,7 +26,10 @@ public class Sender {
     private final int SYN_ACK = 5;
     private final int FIN_ACK = 3;
     private final int DATA = 0;
-    private long timeout;
+
+    private long timeout = 5000000000L;
+    private long eRTT;
+    private long eDev;
 
     private int port;
     private int remotePort;
@@ -142,6 +145,21 @@ public class Sender {
 
     private class ReceiveThread implements Runnable {
 
+        public void updateTimeout(int sequence, long timestamp) {
+            if(sequence == 0) {
+                eRTT = System.nanoTime() - timestamp;
+                eDev = 0;
+                timeout =  2 * eRTT;
+            }
+            else {
+                int sRTT = System.nanoTime() - timestamp;
+                int sDev = sRTT - eRTT;
+                eRTT = 0.875 * eRTT + (1 - 0.875) * sRTT;
+                eDev = 0.75 * eDev + (1 - 0.75) * sDev;
+                timeout = eRTT + 4 * eDev;
+            }
+        }
+
         public void startConnection() throws IOException{
             byte[] data = new byte[0];
             long timestamp = System.nanoTime();
@@ -151,7 +169,8 @@ public class Sender {
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
-                    senderUtility.receivePacketSender();
+                    Segment incomingSegment = senderUtility.receivePacketSender();
+                    timeout = System.nanoTime() - incomingSegment.getTimestamp();
                     established = true;
                     seqNum++;
                 } catch (SocketTimeoutException e) {
@@ -166,6 +185,7 @@ public class Sender {
         public void dataTransfer() throws IOException{
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
+                updateTimeout(lastSegmentAcked.getSeqNum(), lastSegmentAcked.getTimestamp());
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
                 if(lastSegmentAcked.getTotalAcks() >= 3) {
