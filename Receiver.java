@@ -59,7 +59,6 @@ public class Receiver {
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, acknowledgement, timestamp, 0, flag, checksum, data);
         }
-        nextByteExpected = 1;
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
