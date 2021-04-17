@@ -67,7 +67,7 @@ public class Receiver {
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 Segment top = receiverQueue.poll();
                 timestamp = top.getTimestamp();
-                nextByteExpected += top.getLength();
+                nextByteExpected = (nextByteExpected == 0) ? 1 : nextByteExpected + top.getLength();
             }
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, ACK, (short) 0, data);

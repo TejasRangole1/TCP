@@ -92,7 +92,7 @@ public class Sender {
             fileBytes = Files.readAllBytes(path);
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(0, 0, timestamp, 1, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(0, 1, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty())) {
