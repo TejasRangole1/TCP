@@ -51,6 +51,7 @@ public class Sender {
     private Thread timeoutThread;
     private DatagramSocket socket;
     private Segment lastSegmentAcked;
+    private byte[] fileBytes;
 
     private Utility senderUtility;
 
@@ -66,8 +67,7 @@ public class Sender {
 
     private class SendingThread implements Runnable {
 
-        Path path = Paths.get(filepath);
-        byte[] fileBytes;
+        
         
         /**
          * Method to write bytes of file into an array of bytes
@@ -92,7 +92,7 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
-            fileBytes = Files.readAllBytes(path);
+            
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
@@ -157,6 +157,9 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
+                if(lastByteAcked == fileBytes.length){
+                    finished = true;
+                }
             }
         }
         
@@ -189,6 +192,8 @@ public class Sender {
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
+        Path path = Paths.get(filename);
+        fileBytes = Files.readAllBytes(path);
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
         timeoutThread = new Thread(senderTimeout, "Timeout Thread");
