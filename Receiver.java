@@ -39,7 +39,6 @@ public class Receiver {
         this.port = remotePort;
         this.MTU = mtu;
         socket = new DatagramSocket(port);
-        this.network = new Network(socket, port);
         file = new File(outputFile);
         fs = new FileOutputStream(file);
         receiverUtility = new Utility(MTU, port, socket);
@@ -57,7 +56,7 @@ public class Receiver {
                 continue;
             }
             int sequence = incomingSegment.getSeqNum();
-            acknowledgement = sequence + 1;
+            int acknowledgement = sequence + 1;
             long timestamp = incomingSegment.getTimestamp();
             int flag = SYN_ACK;
             short checksum = incomingSegment.getChecksum();
