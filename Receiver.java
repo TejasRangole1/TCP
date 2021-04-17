@@ -71,7 +71,7 @@ public class Receiver {
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
-            if(nextByteExpected < incomingSegment.getSeqNum()){
+            if(nextByteExpected < incomingSegment.getSeqNum() && incomingSegment.getSeqNum() != 1){
                 receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getPayload());
                 continue;
             }
