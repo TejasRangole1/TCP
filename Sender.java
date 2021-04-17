@@ -92,9 +92,8 @@ public class Sender {
             fileBytes = Files.readAllBytes(path);
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(seqNum, seqNum, timestamp, payload.length, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
-            boolean init = true; // indicates that the first data packet should be sent with sequence number 1
             while(lastByteAcked < fileBytes.length) {
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty())) {
                     if(lastByteWritten < fileBytes.length) {
@@ -155,7 +154,8 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
-                while(!senderQueue.isEmpty() && lastByteAcked == senderQueue.peek().getSeqNum()) {
+                int ack = lastSegmentAcked.getAck();
+                while(!senderQueue.isEmpty() && lastByteAcked < ack){
                     Segment top = senderQueue.poll();
                     lastByteAcked += top.getLength();
                 }
