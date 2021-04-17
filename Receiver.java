@@ -11,6 +11,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.PriorityQueue;
 import java.io.File;
+import java.io.FileNotFoundException;
 
 
 public class Receiver {
@@ -40,7 +41,11 @@ public class Receiver {
         this.MTU = mtu;
         socket = new DatagramSocket(port);
         file = new File(outputFile);
-        fs = new FileOutputStream(file);
+        try {
+            fs = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         receiverUtility = new Utility(MTU, port, socket);
         receiverQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum()); 
     }
