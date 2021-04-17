@@ -98,6 +98,7 @@ public class Sender {
             Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
+                System.out.println("Sender.java: " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked);
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty())) {
                     if(lastByteWritten < fileBytes.length) {
                         byte[] data = writeData();
@@ -111,6 +112,7 @@ public class Sender {
                     Segment toSend = senderQueue.poll();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
+                    sentPackets.add(toSend);
                     lastByteSent += toSend.getLength();
                 }
             }
