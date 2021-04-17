@@ -63,7 +63,7 @@ public class Sender {
         public void run() {
             // TODO Auto-generated method stub
             while(!finished) {
-                Iterator it = sentPackets.iterator();
+                Iterator<Segment> it = sentPackets.iterator();
                 while(it.hasNext()) {
                     Segment top = it.next();
                     if (System.nanoTime() - top.getTimestamp() >= timeout) {
