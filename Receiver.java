@@ -2,6 +2,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -27,16 +28,19 @@ public class Receiver {
     private final int NONE = 3;
     private boolean established = false;
     private boolean finished = false;
-    private Network network;
     private Utility receiverUtility;
-    private int acknowledgement;
     private PriorityQueue<Segment> receiverQueue;
+    private File file;
+    private FileOutputStream fs;
+    private Segment lastSegmentAcked;
 
-    public Receiver(int remotePort, int mtu) throws SocketException{
+    public Receiver(int remotePort, int mtu, String outputFile) throws SocketException{
         this.port = remotePort;
         this.MTU = mtu;
         socket = new DatagramSocket(port);
         this.network = new Network(socket, port);
+        file = new File(outputFile);
+        fs = new FileOutputStream(outputFile);
         receiverUtility = new Utility(MTU, port, socket);
         receiverQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum()); 
     }
@@ -62,12 +66,18 @@ public class Receiver {
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             receiverQueue.add(incomingSegment);
+            if(nextByteExpected < incomingSegment.getSeqNum()){
+                receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getData());
+                continue;
+            }
             long timestamp = 0;
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
-                Segment top = receiverQueue.poll();
-                timestamp = top.getTimestamp();
-                nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + top.getLength() : 1;
+                lastSegmentAcked = receiverQueue.poll();
+                fs.write(lastSegmentAcked.getData());
+                timestamp = lastSegmentAcked.getTimestamp();
+                nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + lastSegmentAcked.getLength() : 1;
             }
+
             int sequence  = nextByteExpected - 1;
             byte[] data = new byte[0];
             receiverUtility.sendPacket(sequence, nextByteExpected, timestamp, 0, ACK, (short) 0, data);
