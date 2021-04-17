@@ -119,6 +119,7 @@ public class Sender {
                 }
                 if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
                     Segment toSend = senderQueue.poll();
+                    toSend.incrementTransmissions();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     sentPackets.add(toSend);
@@ -150,7 +151,6 @@ public class Sender {
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
-                    senderUtility.receivePacketSender();
                     established = true;
                     seqNum++;
                 } catch (SocketTimeoutException e) {
@@ -167,6 +167,11 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
+                if(lastSegmentAcked.getTotalAcks() >= 3) {
+                    lastSegmentAcked.resetTotalAcks();
+                    senderQueue.add(lastSegmentAcked);
+                    continue;
+                }
                 if(lastByteAcked == fileBytes.length) {
                     finished = true;
                 }

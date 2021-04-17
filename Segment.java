@@ -14,7 +14,7 @@ public class Segment  {
     private int length;
     private long timestamp;
     private int flag;
-    private int numTransmissions = 1;
+    private int numTransmissions = 0;
     private short checksum;
     private byte[] payload;
     private int totalAcks;
@@ -74,5 +74,10 @@ public class Segment  {
     public void incrementAcks() {
         totalAcks++;
     }
+
+    public void resetTotalAcks() {
+        totalAcks = 0;
+    }
+    
 
 }
