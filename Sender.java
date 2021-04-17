@@ -10,6 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.swing.text.Segment;
 
 
 public class Sender {
@@ -39,8 +42,10 @@ public class Sender {
     private final int HEADER_SIZE = 24;
     private boolean established = false;
     private boolean finished = false;
-
+    // min-heap of byte sequence numbers representing packets that have been written but not sent
     private PriorityQueue<Segment> senderQueue;
+    // queue storing the packets that were sent
+    private ConcurrentLinkedQueue<Segment> sentPackets;
     private Thread senderThread;
     private Thread receiveThread;
     private Thread timeoutThread;
@@ -48,8 +53,6 @@ public class Sender {
     private Segment lastSegmentAcked;
 
     private Utility senderUtility;
-
-    private DatagramPacket resendSegment;
 
     private class SenderTimeout implements Runnable {
         
@@ -105,7 +108,7 @@ public class Sender {
                     }
                 }
                 if(!senderQueue.isEmpty()) {
-                    Segment toSend = senderQueue.poll();
+                    Segment toSend = senderQueue.peek();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     lastByteSent += toSend.getLength();
@@ -152,6 +155,7 @@ public class Sender {
         public void dataTransfer() throws IOException{
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
+                senderQueue.poll();
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
             }
@@ -182,6 +186,7 @@ public class Sender {
         this.socket = new DatagramSocket(remotePort);
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum());
+        sentPackets = new ConcurrentLinkedQueue<>();
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
