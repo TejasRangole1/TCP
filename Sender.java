@@ -154,8 +154,8 @@ public class Sender {
             else {
                 long sRTT = System.nanoTime() - timestamp;
                 long sDev = sRTT - eRTT;
-                eRTT = 0.875 * eRTT +  (long) (1 - 0.875) * sRTT;
-                eDev = 0.75 * eDev + (long) (1 - 0.75) * sDev;
+                eRTT = (long) (0.875 * eRTT) +  (long) (1 - 0.875) * sRTT;
+                eDev = (long) (0.75 * eDev) + (long) (1 - 0.75) * sDev;
                 timeout = eRTT + 4 * eDev;
             }
         }
