@@ -14,6 +14,8 @@ import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
+
 
 public class Sender {
     
@@ -71,7 +73,7 @@ public class Sender {
                        Segment resendSegment = new Segment(top.getSeqNum(), top.getAck(), timestamp, top.getLength(), top.getFlag(), top.getChecksum(), top.getPayload());
                        try {
                            lock.lock();
-                           if(resendSegment.getSeqNum() == top.getSeqNum()) {
+                           if(resendSegment.getSeqNum() == top.getSeqNum() && !sentPackets.isEmpty()) {
                                sentPackets.pollFirst();
                            }
                        } finally {
@@ -200,7 +202,7 @@ public class Sender {
                 lastByteAcked = lastSegmentAcked.getSeqNum();
                 try {
                     lock.lock();
-                    if(lastSegmentAcked.getSeqNum() == sentPackets.peek().getSeqNum()) {
+                    if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() == sentPackets.peek().getSeqNum()) {
                         sentPackets.pollFirst();
                     }
                 } finally {
