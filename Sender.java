@@ -13,11 +13,6 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.swing.text.Segment;
-
-
-
-
 
 public class Sender {
 
