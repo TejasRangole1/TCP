@@ -72,6 +72,7 @@ public class Sender {
                        try {
                            lock.lock();
                            if(resendSegment.getSeqNum() == top.getSeqNum() && !sentPackets.isEmpty()) {
+                               System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " REMOVING PACKET NO. " + sentPackets.peek().getSeqNum());
                                sentPackets.pollFirst();
                            }
                        } finally {
@@ -135,6 +136,7 @@ public class Sender {
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     sentPackets.add(toSend);
+                    System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " ADDED PACKET NO. " + sentPackets.peek().getSeqNum());
                     lastByteSent += toSend.getLength();
                 }
             }
@@ -200,6 +202,7 @@ public class Sender {
                 try {
                     lock.lock();
                     if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
+                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVING PACKET NO. " + sentPackets.peek().getSeqNum());
                         sentPackets.pollFirst();
                     }
                 } finally {
