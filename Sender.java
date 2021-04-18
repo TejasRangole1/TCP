@@ -197,7 +197,6 @@ public class Sender {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 updateTimeout(lastSegmentAcked.getSeqNum(), lastSegmentAcked.getTimestamp());
                 lastSegmentAcked.incrementAcks();
-                lastByteAcked = lastSegmentAcked.getSeqNum();
                 try {
                     lock.lock();
                     if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
@@ -206,6 +205,7 @@ public class Sender {
                 } finally {
                     lock.unlock();
                 }
+                lastByteAcked = lastSegmentAcked.getSeqNum();
                 if(lastSegmentAcked.getTotalAcks() >= 3) {
                     lastSegmentAcked.resetTotalAcks();
                     senderQueue.add(lastSegmentAcked);
