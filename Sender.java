@@ -189,7 +189,7 @@ public class Sender {
             }
             socket.setSoTimeout(0);
             senderThread.start();
-            //timeoutThread.start();
+            timeoutThread.start();
         }
 
         public void dataTransfer() throws IOException{
