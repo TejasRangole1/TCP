@@ -120,7 +120,7 @@ public class Sender {
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                 }
-                if(!senderQueue.isEmpty()) {
+                if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
