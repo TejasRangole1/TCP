@@ -200,7 +200,7 @@ public class Sender {
                 lastByteAcked = lastSegmentAcked.getSeqNum();
                 try {
                     lock.lock();
-                    if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() == sentPackets.peek().getSeqNum()) {
+                    if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
                         sentPackets.pollFirst();
                     }
                 } finally {
