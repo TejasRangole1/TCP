@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.swing.text.Segment;
+
 
 
 
@@ -110,9 +112,12 @@ public class Sender {
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
-                    if(!senderQueue.isEmpty() && senderQueue.peek().getSeqNum() < lastByteSent) {
-                        lastByteSent -= senderQueue.peek().getLength();
-                        break;
+                    if(!senderQueue.isEmpty()) {
+                        Segment top = senderQueue.peek();
+                        if(top.getSeqNum() + top.getLength() - 1 < lastByteSent) {
+                            lastByteSent -= top.getLength();
+                            continue;
+                        }
                     }
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
