@@ -112,7 +112,7 @@ public class Sender {
                 while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteWritten < fileBytes.length) {
                     if(!senderQueue.isEmpty() && senderQueue.peek().getSeqNum() < lastByteSent) {
                         lastByteSent -= senderQueue.peek().getLength();
-                        continue;
+                        break;
                     }
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
@@ -120,7 +120,7 @@ public class Sender {
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                 }
-                if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
+                if(!senderQueue.isEmpty()) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
@@ -180,6 +180,7 @@ public class Sender {
             }
             socket.setSoTimeout(0);
             senderThread.start();
+            //timeoutThread.start();
         }
 
         public void dataTransfer() throws IOException{
