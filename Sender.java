@@ -11,11 +11,13 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
 
 public class Sender {
-
     
     private final int SYN = 4;
     private final int FIN = 2;
@@ -48,13 +50,13 @@ public class Sender {
     // min-heap of byte sequence numbers representing packets that have been written but not sent
     private PriorityQueue<Segment> senderQueue;
     // queue storing the packets that were sent
-    private ConcurrentLinkedQueue<Segment> sentPackets;
+    private ConcurrentLinkedDeque<Segment> sentPackets;
     private Thread senderThread;
     private Thread receiveThread;
     private Thread timeoutThread;
     private DatagramSocket socket;
     private Segment lastSegmentAcked;
-
+    private ReentrantLock lock;
     private Utility senderUtility;
 
     private class SenderTimeout implements Runnable {
@@ -63,15 +65,23 @@ public class Sender {
         public void run() {
             // TODO Auto-generated method stub
             while(!finished) {
-                Iterator<Segment> it = sentPackets.iterator();
-                while(it.hasNext()) {
-                    Segment top = it.next();
-                    if (System.nanoTime() - top.getTimestamp() >= timeout) {
-                        long timestamp = System.nanoTime();
-                        Segment resentSegment = new Segment(top.getSeqNum(), top.getAck(), timestamp, top.getLength(), top.getFlag(), top.getChecksum(), top.getPayload());
-                        senderQueue.add(resentSegment);
-                    }
-                }
+               Iterator<Segment> it = sentPackets.iterator();
+               while(it.hasNext()) {
+                   Segment top = it.next();
+                   if(System.nanoTime() - top.getTimestamp() >= timeout) {
+                       long timestamp = System.nanoTime();
+                       Segment resendSegment = new Segment(top.getSeqNum(), top.getAck(), timestamp, top.getLength(), top.getFlag(), top.getChecksum(), top.getPayload());
+                       try {
+                           lock.lock();
+                           if(resendSegment.getSeqNum() == top.getSeqNum()) {
+                               sentPackets.pollFirst();
+                           }
+                       } finally {
+                           lock.unlock();
+                       }
+                       senderQueue.add(resendSegment);
+                   }
+               }
             }
         }
         
@@ -123,6 +133,7 @@ public class Sender {
                 if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
+                    toSend.updateTimestamp();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                     sentPackets.add(toSend);
@@ -189,6 +200,14 @@ public class Sender {
                 updateTimeout(lastSegmentAcked.getSeqNum(), lastSegmentAcked.getTimestamp());
                 lastSegmentAcked.incrementAcks();
                 lastByteAcked = lastSegmentAcked.getSeqNum();
+                try {
+                    lock.lock();
+                    if(lastSegmentAcked.getSeqNum() == sentPackets.peek()) {
+                        sentPackets.pollFirst();
+                    }
+                } finally {
+                    lock.unlock();
+                }
                 if(lastSegmentAcked.getTotalAcks() >= 3) {
                     lastSegmentAcked.resetTotalAcks();
                     senderQueue.add(lastSegmentAcked);
@@ -223,6 +242,7 @@ public class Sender {
         this.seqNum = 0;
         this.sws = windowSize * MTU;
         this.socket = new DatagramSocket(remotePort);
+        this.lock = new ReentrantLock();
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum());
         sentPackets = new ConcurrentLinkedQueue<>();

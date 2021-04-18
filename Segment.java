@@ -78,6 +78,10 @@ public class Segment  {
     public void resetTotalAcks() {
         totalAcks = 0;
     }
+
+    public void updateTimestamp() {
+        this.timestamp = System.nanoTime();
+    }
     
 
 }
