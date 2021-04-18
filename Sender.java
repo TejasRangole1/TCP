@@ -14,8 +14,6 @@ import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.text.Segment;
-
 
 public class Sender {
     
