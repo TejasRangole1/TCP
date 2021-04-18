@@ -201,7 +201,7 @@ public class Sender {
                 lastByteAcked = lastSegmentAcked.getSeqNum();
                 try {
                     lock.lock();
-                    if(lastSegmentAcked.getSeqNum() == sentPackets.peek()) {
+                    if(lastSegmentAcked.getSeqNum() == sentPackets.peek().getSeqNum()) {
                         sentPackets.pollFirst();
                     }
                 } finally {
