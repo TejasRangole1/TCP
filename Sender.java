@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -244,7 +243,7 @@ public class Sender {
         this.lock = new ReentrantLock();
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum());
-        sentPackets = new ConcurrentLinkedQueue<>();
+        sentPackets = new ConcurrentLinkedDeque<>();
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
