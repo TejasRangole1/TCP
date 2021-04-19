@@ -84,7 +84,7 @@ public class Utility {
         byte[] payload = new byte[length];
         bb.get(payload);
 
-        short computedChecksum = computeChecksum(payload, acknowledgement, sequence, timestamp, length);
+        short computedChecksum = computeChecksum(payload, acknowledgement, sequence, System.nanoTime(), length);
         //System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
         if (computedChecksum != checksum){
             System.out.println("checksums dont match");
