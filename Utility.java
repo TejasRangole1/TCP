@@ -84,7 +84,7 @@ public class Utility {
         byte[] payload = new byte[length];
         bb.get(payload);
 
-        short computedChecksum = computeChecksum(payload, acknowledgement, sequence, System.nanoTime(), length);
+        short computedChecksum = computeChecksum(payload, acknowledgement, sequence, timestamp, length);
         //System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
         if (computedChecksum != checksum){
             System.out.println("checksums dont match");
@@ -95,7 +95,7 @@ public class Utility {
 
         String flagOutput = getFlagOutput(flag);
         Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
-        System.out.println("rcv " + timestamp + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
+        System.out.println("rcv " + System.nanoTime() + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
         return incomingSegment;
     }
 
