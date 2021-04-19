@@ -181,6 +181,9 @@ public class Sender {
             while(!established) {
                 try {
                     Segment incomingSegment = senderUtility.receivePacketSender();
+                    if (incomingSegment == null) {
+                        continue;
+                    }
                     updateTimeout(0, incomingSegment.getTimestamp());
                     established = true;
                     seqNum++;
@@ -197,6 +200,9 @@ public class Sender {
         public void dataTransfer() throws IOException{
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
+                if (lastSegmentAcked == null)
+                    continue;
+
                 updateTimeout(lastSegmentAcked.getSeqNum(), lastSegmentAcked.getTimestamp());
                 lastSegmentAcked.incrementAcks();
                 try {

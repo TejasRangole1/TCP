@@ -54,6 +54,8 @@ public class Receiver {
         Segment incomingSegment;
         while(!established) {
             incomingSegment = receiverUtility.receivePacketReceiver();
+            if (incomingSegment == null)
+                continue;
             int incomingFlag = incomingSegment.getFlag();
             if(incomingFlag == ACK) {
                 established = true;
@@ -70,6 +72,8 @@ public class Receiver {
         }
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
+            if (incomingSegment == null)
+                continue;
             receiverQueue.add(incomingSegment);
             if(nextByteExpected < incomingSegment.getSeqNum() && incomingSegment.getSeqNum() != 1){
                 receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getPayload());
