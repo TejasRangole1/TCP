@@ -215,7 +215,7 @@ public class Sender {
                 lastSegmentAcked.setTotalAcks(totalAcks + 1);
                 try {
                     lock.lock();
-                    if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
+                    while(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
                         //System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVING PACKET NO. " + sentPackets.peek().getSeqNum());
                         sentPackets.pollFirst();
                     }
