@@ -200,7 +200,7 @@ public class Sender {
         public void dataTransfer() throws IOException{
             while(!finished) {
                 int totalAcks = 0;
-                int trasmissions = 0;
+                int transmissions = 0;
                 if (lastSegmentAcked != null) {
                     totalAcks = lastSegmentAcked.getTotalAcks();
                     transmissions = lastSegmentAcked.getTransmissions();
