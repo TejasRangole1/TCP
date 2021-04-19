@@ -188,7 +188,9 @@ public class Sender {
                     established = true;
                     seqNum++;
                 } catch (SocketTimeoutException e) {
-                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+                    // update timestamp before resending
+                    outgoingSegment.updateTimestamp();
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), 
             outgoingSegment.getChecksum(), outgoingSegment.getPayload());
                 }
             }
