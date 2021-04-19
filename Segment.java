@@ -82,6 +82,10 @@ public class Segment  {
     public void updateTimestamp() {
         this.timestamp = System.nanoTime();
     }
+
+    public void setTotalAcks(int acks) {
+        this.totalAcks = acks;
+    }
     
 
 }

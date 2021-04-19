@@ -94,9 +94,7 @@ public class Utility {
         }
 
         String flagOutput = getFlagOutput(flag);
-        // Use an array to store the sequence number received as well as the flag of the incoming packet
         Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
-        long timestampOutput = TimeUnit.NANOSECONDS.toMillis(timestamp);
         System.out.println("rcv " + timestamp + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
         return incomingSegment;
     }
@@ -108,7 +106,6 @@ public class Utility {
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
         socket.send(outgoingPacket);
         String flagOutput = getFlagOutput(flag);
-        long timestampOutput = TimeUnit.NANOSECONDS.toMillis(timestamp);
         System.out.println("snd " + timestamp + " " + flagOutput + " " + byteSeqNum + " " + length + " " + ack);
     }
 

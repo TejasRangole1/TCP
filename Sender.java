@@ -199,12 +199,18 @@ public class Sender {
 
         public void dataTransfer() throws IOException{
             while(!finished) {
+                int totalAcks = 0;
+                int trasmissions = 0;
+                if (lastSegmentAcked != null) {
+                    totalAcks = lastSegmentAcked.getTotalAcks();
+                    transmissions = lastSegmentAcked.getTransmissions();
+                }
                 lastSegmentAcked = senderUtility.receivePacketSender();
-                if (lastSegmentAcked == null)
+                if(lastSegmentAcked == null) {
                     continue;
-
+                }
                 updateTimeout(lastSegmentAcked.getSeqNum(), lastSegmentAcked.getTimestamp());
-                lastSegmentAcked.incrementAcks();
+                lastSegmentAcked.setTotalAcks(totalAcks + 1);
                 try {
                     lock.lock();
                     if(!sentPackets.isEmpty() && lastSegmentAcked.getSeqNum() <= sentPackets.peek().getSeqNum()) {
