@@ -97,7 +97,7 @@ public class Utility {
         // Use an array to store the sequence number received as well as the flag of the incoming packet
         Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
         long timestampOutput = TimeUnit.NANOSECONDS.toMillis(timestamp);
-        System.out.println("rcv " + timestampOutput + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
+        System.out.println("rcv " + timestamp + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
         return incomingSegment;
     }
 
@@ -109,7 +109,7 @@ public class Utility {
         socket.send(outgoingPacket);
         String flagOutput = getFlagOutput(flag);
         long timestampOutput = TimeUnit.NANOSECONDS.toMillis(timestamp);
-        System.out.println("snd " + timestampOutput + " " + flagOutput + " " + byteSeqNum + " " + length + " " + ack);
+        System.out.println("snd " + timestamp + " " + flagOutput + " " + byteSeqNum + " " + length + " " + ack);
     }
 
     public Segment receivePacketSender() throws IOException{
