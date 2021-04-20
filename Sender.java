@@ -144,7 +144,7 @@ public class Sender {
                     toSend.updateTimestamp();
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
-                    sequenceToSegment.put(toSend.getSeqNum(), toSend());
+                    sequenceToSegment.put(toSend.getSeqNum(), toSend);
                     sentPackets.add(toSend);
                     lastByteSent += toSend.getLength();
                 }
