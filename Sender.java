@@ -247,7 +247,7 @@ public class Sender {
                 try {
                     lock.lock();
                     // removing all acked segments from queue
-                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= lastByteAcked) {
+                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= ackNum) {
                         sentPackets.pollFirst();
                     }
                 } finally {
