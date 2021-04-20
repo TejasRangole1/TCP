@@ -94,7 +94,7 @@ public class Sender {
          * Method to write bytes of file into an array of bytes
          */
         public byte[] writeData(){
-            int endIndex = lastByteWritten;
+            int endIndex = lastByteRead;
             if(sws - (lastByteSent - lastByteAcked) < MTU && sws - (lastByteSent - lastByteAcked) > 0) {
                 // create as much data as fits in the sliding window
                 endIndex += sws - (lastByteSent - lastByteAcked);
@@ -240,7 +240,7 @@ public class Sender {
                 try {
                     lock.lock();
                     // removing all acked segments from queue
-                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= ackNum) {
+                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= lastByteRead) {
                         sentPackets.pollFirst();
                     }
                 } finally {
@@ -272,7 +272,6 @@ public class Sender {
         this.filepath = filename;
         this.timeout = 5000000000L;
         this.MTU = mtu;
-        this.seqNum = 0;
         this.sws = windowSize * MTU;
         this.socket = new DatagramSocket(remotePort);
         this.lock = new ReentrantLock();
