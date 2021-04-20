@@ -220,6 +220,7 @@ public class Sender {
                 }
                 // received an ack for a packet that has already been acked 
                 else if(lastByteAcked > lastSegmentAcked.getSeqNum()){
+                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum());
                     continue;
                 }
                 // received a duplicate ack
@@ -229,6 +230,8 @@ public class Sender {
                     if(totalAcks >= 3) {
                         senderQueue.add(sequenceToSegment.get(lastByteAcked));
                         totalAcks = 0;
+                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum() + 
+                        "three duplicate acks");
                         continue;
                     }
                 }
