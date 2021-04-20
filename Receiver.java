@@ -54,10 +54,12 @@ public class Receiver {
         Segment incomingSegment;
         while(!established) {
             incomingSegment = receiverUtility.receivePacketReceiver();
+            // null indicates that checksum does not match
             if (incomingSegment == null)
                 continue;
             int incomingFlag = incomingSegment.getFlag();
-            if(incomingFlag == ACK) {
+            // sender has received SYN_ACK move to data transfer state
+            if(incomingFlag != SYN) {
                 established = true;
                 receiverQueue.add(incomingSegment);
                 continue;
@@ -72,14 +74,18 @@ public class Receiver {
         }
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
+            // null indicates checksum does not match
             if (incomingSegment == null)
                 continue;
             receiverQueue.add(incomingSegment);
+            // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum() && incomingSegment.getSeqNum() != 1){
+                lastSegmentAcked.updateTimestamp();
                 receiverUtility.sendPacket(lastSegmentAcked.getSeqNum(), nextByteExpected, lastSegmentAcked.getTimestamp(), 0, ACK, (short) 0, lastSegmentAcked.getPayload());
                 continue;
             }
             long timestamp = 0;
+            // performing cumulative ack
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 lastSegmentAcked = receiverQueue.poll();
                 fs.write(lastSegmentAcked.getPayload());
