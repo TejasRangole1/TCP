@@ -142,11 +142,11 @@ public class Sender {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
                     toSend.updateTimestamp();
+                    sequenceToSegment.put(toSend.getSeqNum(), toSend);
+                    lastByteSent += toSend.getLength();
+                    sentPackets.add(toSend);
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
-                    sequenceToSegment.put(toSend.getSeqNum(), toSend);
-                    sentPackets.add(toSend);
-                    lastByteSent += toSend.getLength();
                 }
             }
         }
