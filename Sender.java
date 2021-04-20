@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.swing.text.Segment;
+
 import java.util.Map;
 import java.util.HashMap;
 
@@ -138,6 +141,7 @@ public class Sender {
                     senderQueue.add(segment);
                 }
                 // send packet
+                
                 if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
@@ -212,6 +216,7 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
+            int ackNum = 0;
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 // indicates that the checksum does not match and therefore we drop the packet
@@ -237,18 +242,19 @@ public class Sender {
                 }
                 // received an ack for a new segment
                 else {
-                    lastByteAcked = lastSegmentAcked.getSeqNum();
+                    ackNum = lastSegmentAcked.getSeqNum();
                     totalAcks = 1;
                 }
                 try {
                     lock.lock();
                     // removing all acked segments from queue
-                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= lastByteRead) {
+                    while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= lastByteAcked) {
                         sentPackets.pollFirst();
                     }
                 } finally {
                     lock.unlock();
                 }
+                lastByteAcked = ackNum;
                 updateTimeout(lastByteAcked, lastSegmentAcked.getTimestamp());
                 if(lastByteAcked == fileBytes.length) {
                     finished = true;
