@@ -83,6 +83,7 @@ public class Sender {
                            if(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() == resendSegment.getSeqNum()) {
                                sentPackets.pollFirst();
                                senderQueue.add(resendSegment);
+                               System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + resendSegment.getSeqNum() +  " TO senderQueue");
                            }
                            // add to packet to senderQueue so that it may be sent later
                        } finally {
@@ -141,6 +142,7 @@ public class Sender {
                     timestamp = System.nanoTime();
                     int sequence = lastByteRead - data.length + 1;
                     Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
+                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + sequence +  " TO senderQueue");
                     senderQueue.add(segment);
                 }
                 // send packet
@@ -152,6 +154,8 @@ public class Sender {
                     sequenceToSegment.put(toSend.getSeqNum(), toSend);
                     lastByteSent += toSend.getLength();
                     sentPackets.add(toSend);
+                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVED SEGMENT: " + toSend.getSeqNum() +  " FROM senderQueue");
+                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + toSend.getSeqNum() + " TO  sentPackets");
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
                     toSend.getChecksum(), toSend.getPayload());
                 }
@@ -252,6 +256,7 @@ public class Sender {
                     lock.lock();
                     // removing all acked segments from queue
                     while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= ackNum) {
+                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVED SEGMENT: " + sentPackets().peek().getSeqNum() +  " FROM sentPackets");
                         sentPackets.pollFirst();
                     }
                 } finally {
