@@ -199,8 +199,7 @@ public class Sender {
             byte[] data = new byte[0]; 
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, data);
-            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
@@ -231,12 +230,12 @@ public class Sender {
                     continue;
                 }
                 // received an ack for a packet that has already been acked 
-                else if(ackNum > incomingSegment.getAckNum()){
+                else if(ackNum > incomingSegment.getAck()){
                     System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + incomingSegment.getSeqNum());
                     continue;
                 }
                 // received a duplicate ack
-                else if(ackNum == incomingSegment.getAckNum()) {
+                else if(ackNum == incomingSegment.getAck()) {
                     totalAcks++;
                     // three-duplicate acks, add segment to be resent
                     if(totalAcks >= 3) {
@@ -249,7 +248,7 @@ public class Sender {
                 }
                 // received an ack for a new segment
                 else {
-                    ackNum = incomingSegment.getAckNum() - 1;
+                    ackNum = incomingSegment.getAck() - 1;
                     totalAcks = 1;
                 }
                 try {
