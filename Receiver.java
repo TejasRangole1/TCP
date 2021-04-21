@@ -18,10 +18,8 @@ public class Receiver {
     
     private int port;
     private DatagramSocket socket;
-    private int isn = 200;
     private final int MTU;
     private int nextByteExpected;
-    private final int HEADER_SIZE = 24; 
     private final int SYN = 4;
     private final int FIN = 2;
     private final int ACK = 1;
@@ -55,8 +53,9 @@ public class Receiver {
         while(!established) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             // null indicates that checksum does not match
-            if (incomingSegment == null)
+            if (incomingSegment == null) {
                 continue;
+            }
             int incomingFlag = incomingSegment.getFlag();
             // sender has received SYN_ACK move to data transfer state
             if(incomingFlag != SYN) {
@@ -75,8 +74,9 @@ public class Receiver {
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
             // null indicates checksum does not match
-            if (incomingSegment == null)
+            if (incomingSegment == null) {
                 continue;
+            }
             receiverQueue.add(incomingSegment);
             // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum() && incomingSegment.getSeqNum() != 1){

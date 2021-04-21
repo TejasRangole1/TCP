@@ -61,6 +61,8 @@ public class Sender {
     // keeps track of the number of acks for a particular ackNum
     private int totalAcks;
 
+    private int ackNum = 0;
+
     private class SenderTimeout implements Runnable {
         
         @Override
@@ -68,6 +70,7 @@ public class Sender {
             // TODO Auto-generated method stub
             while(!finished) {
                Iterator<Segment> it = sentPackets.iterator();
+               // iterating through all segments to find which ones have timed out
                while(it.hasNext()) {
                    Segment top = it.next();
                    // timeout detected
@@ -76,11 +79,12 @@ public class Sender {
                        // Atomic operation of removing segment from the sent packets queue
                        try {
                            lock.lock();
-                           if(resendSegment.getSeqNum() == top.getSeqNum() && !sentPackets.isEmpty()) {
+                           // polling segment from the sent packets queue
+                           if(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() == resendSegment.getSeqNum()) {
                                sentPackets.pollFirst();
+                               senderQueue.add(resendSegment);
                            }
                            // add to packet to senderQueue so that it may be sent later
-                           senderQueue.add(resendSegment);
                        } finally {
                            lock.unlock();
                        }
@@ -197,6 +201,7 @@ public class Sender {
             while(!established) {
                 try {
                     Segment incomingSegment = senderUtility.receivePacketSender();
+                    // checksums dont match
                     if (incomingSegment == null) {
                         continue;
                     }
@@ -215,7 +220,6 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            int ackNum = 0;
             while(!finished) {
                 lastSegmentAcked = senderUtility.receivePacketSender();
                 // indicates that the checksum does not match and therefore we drop the packet
@@ -223,16 +227,16 @@ public class Sender {
                     continue;
                 }
                 // received an ack for a packet that has already been acked 
-                else if(lastByteAcked > lastSegmentAcked.getSeqNum()){
+                else if(ackNum > lastSegmentAcked.getSeqNum()){
                     System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum());
                     continue;
                 }
                 // received a duplicate ack
-                else if(lastByteAcked == lastSegmentAcked.getSeqNum()) {
+                else if(ackNum == lastSegmentAcked.getSeqNum()) {
                     totalAcks++;
                     // three-duplicate acks, add segment to be resent
                     if(totalAcks >= 3) {
-                        senderQueue.add(sequenceToSegment.get(lastByteAcked));
+                        senderQueue.add(sequenceToSegment.get(ackNum));
                         totalAcks = 0;
                         System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum() + 
                         "three duplicate acks");
@@ -254,7 +258,7 @@ public class Sender {
                     lock.unlock();
                 }
                 lastByteAcked = ackNum;
-                updateTimeout(lastByteAcked, lastSegmentAcked.getTimestamp());
+                updateTimeout(ackNum, lastSegmentAcked.getTimestamp());
                 if(lastByteAcked == fileBytes.length) {
                     finished = true;
                 }
