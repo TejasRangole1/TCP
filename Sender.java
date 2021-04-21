@@ -198,7 +198,7 @@ public class Sender {
         public void startConnection() throws IOException{
             byte[] data = new byte[0]; 
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, (short) 0, data);
+            Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, data);
             senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
             outgoingSegment.getChecksum(), outgoingSegment.getPayload());
             socket.setSoTimeout(5000);

@@ -94,7 +94,7 @@ public class Utility {
         }
 
         String flagOutput = getFlagOutput(flag);
-        Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, checksum, payload);
+        Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, payload);
         System.out.println("rcv " + System.nanoTime() + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
         return incomingSegment;
     }
