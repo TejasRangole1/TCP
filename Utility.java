@@ -99,7 +99,7 @@ public class Utility {
         return incomingSegment;
     }
 
-    public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) throws IOException{
+    public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, byte[] payloadData) throws IOException{
         short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length);
         //System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
         byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, computedChecksum, payloadData);

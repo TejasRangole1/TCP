@@ -15,17 +15,15 @@ public class Segment  {
     private long timestamp;
     private int flag;
     private int numTransmissions = 0;
-    private short checksum;
     private byte[] payload;
     private int totalAcks;
 
-    public Segment(int sequence, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData){
+    public Segment(int sequence, int ack, long timestamp, int length, int flag, byte[] payloadData){
         this.byteSequenceNumber = sequence;
         this.acknowledgement = ack;
         this.length = length;
         this.timestamp = timestamp;
         this.flag = flag;
-        this.checksum = checksum;
         this.payload = payloadData;
         this.numTransmissions = 1;
         totalAcks = 0;
@@ -49,10 +47,6 @@ public class Segment  {
 
     public byte[] getPayload(){
         return payload;
-    }
-
-    public short getChecksum() {
-        return checksum;
     }
         
     public long getTimestamp(){

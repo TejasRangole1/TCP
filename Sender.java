@@ -53,7 +53,7 @@ public class Sender {
     private Thread receiveThread;
     private Thread timeoutThread;
     private DatagramSocket socket;
-    private Segment lastSegmentAcked;
+    private Segment incomingSegment;
     private ReentrantLock lock;
     private Utility senderUtility;
     // maps sequence numbers to segments
@@ -125,7 +125,7 @@ public class Sender {
         public void dataTransfer() throws IOException {
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(1, 1, timestamp, payload.length, ACK, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
@@ -142,7 +142,7 @@ public class Sender {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
                     int sequence = lastByteRead - data.length + 1;
-                    Segment segment = new Segment(sequence, sequence, timestamp, data.length, DATA, (short) 0, data);
+                    Segment segment = new Segment(sequence, 1, timestamp, data.length, DATA, data);
                     System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + sequence +  " TO senderQueue");
                     senderQueue.add(segment);
                 }
@@ -157,8 +157,7 @@ public class Sender {
                     sentPackets.add(toSend);
                     System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVED SEGMENT: " + toSend.getSeqNum() +  " FROM senderQueue");
                     System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + toSend.getSeqNum() + " TO  sentPackets");
-                    senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
-                    toSend.getChecksum(), toSend.getPayload());
+                    senderUtility.sendPacket(toSend.getSeqNum(), 1, toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(), toSend.getPayload());
                 }
             }
         }
@@ -215,8 +214,7 @@ public class Sender {
                 } catch (SocketTimeoutException e) {
                     // update timestamp before resending
                     outgoingSegment.updateTimestamp();
-                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
                 }
             }
             socket.setSoTimeout(0);
@@ -225,32 +223,33 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
+            Segment incomingSegment;
             while(!finished) {
-                lastSegmentAcked = senderUtility.receivePacketSender();
+                incomingSegment = senderUtility.receivePacketSender();
                 // indicates that the checksum does not match and therefore we drop the packet
-                if(lastSegmentAcked == null) {
+                if (incomingSegment == null) {
                     continue;
                 }
                 // received an ack for a packet that has already been acked 
-                else if(ackNum > lastSegmentAcked.getSeqNum()){
-                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum());
+                else if(ackNum > incomingSegment.getAckNum()){
+                    System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + incomingSegment.getSeqNum());
                     continue;
                 }
                 // received a duplicate ack
-                else if(ackNum == lastSegmentAcked.getSeqNum()) {
+                else if(ackNum == incomingSegment.getAckNum()) {
                     totalAcks++;
                     // three-duplicate acks, add segment to be resent
                     if(totalAcks >= 3) {
                         senderQueue.add(sequenceToSegment.get(ackNum));
                         totalAcks = 0;
-                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + lastSegmentAcked.getSeqNum() + 
+                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " lastByteAcked: " + lastByteAcked + " incomingSegment: " + incomingSegment.getSeqNum() + 
                         "three duplicate acks");
                         continue;
                     }
                 }
                 // received an ack for a new segment
                 else {
-                    ackNum = lastSegmentAcked.getSeqNum();
+                    ackNum = incomingSegment.getAckNum() - 1;
                     totalAcks = 1;
                 }
                 try {
@@ -264,7 +263,7 @@ public class Sender {
                     lock.unlock();
                 }
                 lastByteAcked = ackNum;
-                updateTimeout(ackNum, lastSegmentAcked.getTimestamp());
+                updateTimeout(ackNum,   incomingSegment.getTimestamp());
                 if(lastByteAcked == fileBytes.length) {
                     finished = true;
                 }
@@ -294,7 +293,7 @@ public class Sender {
         this.socket = new DatagramSocket(remotePort);
         this.lock = new ReentrantLock();
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
-        senderQueue = new PriorityQueue<>((a, b) -> a.getSeqNum() - b.getSeqNum());
+        senderQueue = new PriorityQueue<>((a, b) -> (a.getSeqNum() != b.getSeqNum()) ? a.getSeqNum() - b.getSeqNum() : a.getLength() - b.getLength());
         sentPackets = new ConcurrentLinkedDeque<>();
         sequenceToSegment = new HashMap<>();
         Runnable senderRunnable = new SendingThread();
