@@ -76,6 +76,7 @@ public class Sender {
                    // timeout detected
                    if(System.nanoTime() - top.getTimestamp() >= timeout) {
                        Segment resendSegment = sequenceToSegment.get(top.getSeqNum());
+                       System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " SEGMENT: " + resendSegment.getSeqNum() + " TIMED OUT");
                        // Atomic operation of removing segment from the sent packets queue
                        try {
                            lock.lock();
@@ -83,7 +84,7 @@ public class Sender {
                            if(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() == resendSegment.getSeqNum()) {
                                sentPackets.pollFirst();
                                senderQueue.add(resendSegment);
-                               System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + resendSegment.getSeqNum() +  " TO senderQueue");
+                               System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + resendSegment.getSeqNum() +  " TO senderQueue");
                            }
                            // add to packet to senderQueue so that it may be sent later
                        } finally {
