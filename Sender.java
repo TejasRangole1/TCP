@@ -257,7 +257,7 @@ public class Sender {
                     lock.lock();
                     // removing all acked segments from queue
                     while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() <= ackNum) {
-                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVED SEGMENT: " + sentPackets().peek().getSeqNum() +  " FROM sentPackets");
+                        System.out.println("Sender.java: dataTransfer(): " + Thread.currentThread().getName() + " REMOVED SEGMENT: " + sentPackets.peek().getSeqNum() +  " FROM sentPackets");
                         sentPackets.pollFirst();
                     }
                 } finally {
