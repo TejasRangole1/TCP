@@ -72,6 +72,14 @@ public class Sender {
             while(!finished) {
                 try {
                     lock.lock();
+                    if(!sequenceToSegment.containsKey(lastByteAcked + 1)) {
+                        System.out.println("-----------------------------------------------------------------------");
+                        System.out.println("SEGMENT: " + (lastByteAcked + 1) + "NOT FOUND, PRINTING CONTENTS OF MAP");
+                        for(Map.Entry<Integer, Segment> i : sequenceToSegment.entrySet()) {
+                            System.out.println("SEGMENT: " + i.getKey());
+                        }
+                        System.out.println("-----------------------------------------------------------------------");
+                    }
                     if(System.nanoTime() - sequenceToSegment.get(lastByteAcked + 1).getTimestamp() > timeout) {
                         while(!sentPackets.isEmpty()) {
                             // removing from sent packets queue and add to senderQueue
