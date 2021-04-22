@@ -71,19 +71,19 @@ public class Sender {
             // TODO Auto-generated method stub
             // checking if last segment not acked has timed out
             while(!finished) {
-                Segment firstSegmentNotAcked = sequenceToSegment.get(lastByteAcked + 1);
-                if(System.nanoTime() - firstSegmentNotAcked.getTimestamp() >= timeout) {
-                    try {
-                        lock.lock();
+                try {
+                    lock.lock();
+                    if(System.nanoTime() - sequenceToSegment.get(lastByteAcked +).getTimestamp() > timeout) {
                         while(!sentPackets.isEmpty()) {
                             // removing from sent packets queue and add to senderQueue
                             senderQueue.add(sentPackets.poll());
                         }
-                    } finally {
-                        lock.unlock();
                     }
+                } finally {
+                    lock.unlock();
                 }
             }
+        }
     }
 
     private class SendingThread implements Runnable {
