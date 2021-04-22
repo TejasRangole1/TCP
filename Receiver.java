@@ -34,6 +34,7 @@ public class Receiver {
     private File file;
     private FileOutputStream fs;
     int byteSequenceNumber = 0;
+    int lastSeqAcked;
     // maps sequence numbers to segments
     Map<Integer, Segment> sequenceToSegment;
 
@@ -88,7 +89,9 @@ public class Receiver {
             receiverQueue.add(incomingSegment);
             // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum()){
-                Segment resend = sequenceToSegment.get(nextByteExpected - 1);
+                Segment resend = sequenceToSegment.get(lastSeqAcked);
+                // Segment resend = sequenceToSegment.get(nextByteExpected-1);
+
                 receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
                 continue;
             }
@@ -98,6 +101,7 @@ public class Receiver {
                 Segment current = receiverQueue.poll();
                 fs.write(current.getPayload());
                 timestamp = current.getTimestamp();
+                lastSeqAcked = current.getSeqNum();
                 nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + current.getLength() : 1;
             }
             byte[] data = new byte[0];

@@ -80,7 +80,7 @@ public class Sender {
                         }
                         System.out.println("-----------------------------------------------------------------------");
                     }
-                    if(System.nanoTime() - sequenceToSegment.get(lastByteAcked + 1).getTimestamp() > timeout) {
+                    else if(System.nanoTime() - sequenceToSegment.get(lastByteAcked + 1).getTimestamp() > timeout) {
                         while(!sentPackets.isEmpty()) {
                             // removing from sent packets queue and add to senderQueue
                             senderQueue.add(sentPackets.poll());
