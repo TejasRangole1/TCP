@@ -14,6 +14,7 @@ import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -68,33 +69,21 @@ public class Sender {
         @Override
         public void run() {
             // TODO Auto-generated method stub
+            // checking if last segment not acked has timed out
             while(!finished) {
-               Iterator<Segment> it = sentPackets.iterator();
-               // iterating through all segments to find which ones have timed out
-               while(it.hasNext()) {
-                   Segment top = it.next();
-                   // timeout detected
-                   if(System.nanoTime() - top.getTimestamp() >= timeout) {
-                       Segment resendSegment = sequenceToSegment.get(top.getSeqNum());
-                       System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " SEGMENT: " + resendSegment.getSeqNum() + " TIMED OUT");
-                       // Atomic operation of removing segment from the sent packets queue
-                       try {
-                           lock.lock();
-                           // polling segment from the sent packets queue
-                           if(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() == resendSegment.getSeqNum()) {
-                               sentPackets.pollFirst();
-                               senderQueue.add(resendSegment);
-                               System.out.println("Sender.java: run(): " + Thread.currentThread().getName() + " ADDING SEGMENT: " + resendSegment.getSeqNum() +  " TO senderQueue");
-                           }
-                           // add to packet to senderQueue so that it may be sent later
-                       } finally {
-                           lock.unlock();
-                       }
-                   }
-               }
+                Segment firstSegmentNotAcked = sequenceToSegment.get(lastByteAcked + 1);
+                if(System.nanoTime() - firstSegmentNotAcked.getTimestamp() >= timeout) {
+                    try {
+                        lock.lock();
+                        while(!sentPackets.isEmpty()) {
+                            // removing from sent packets queue and add to senderQueue
+                            senderQueue.add(sentPackets.poll());
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                }
             }
-        }
-        
     }
 
     private class SendingThread implements Runnable {
