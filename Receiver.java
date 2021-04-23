@@ -69,15 +69,17 @@ public class Receiver {
                 // received an ack from sender
                 if(incomingSegment.getSeqNum() == 1) {
                     byteSequenceNumber = 1;
-                    nextByteExpected = incomingSegment.getSeqNum() +incomingSegment.getLength();
+                    nextByteExpected = incomingSegment.getSeqNum() + incomingSegment.getLength();
                     receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, incomingSegment.getTimestamp(), 0, ACK, incomingSegment.getPayload());
                 }
+                // received out of order packet, do not send ack immediatley
                 else {
                     receiverQueue.add(incomingSegment);
                 }
                 continue;
             }
             receiverUtility.sendPacket(incomingSegment.getSeqNum(),incomingSegment.getSeqNum() + 1, incomingSegment.getTimestamp(), 0 ,incomingSegment.getFlag(),incomingSegment.getPayload());
+            nextByteExpected = 1;
         }
         while(!finished) {
             incomingSegment = receiverUtility.receivePacketReceiver();
@@ -90,8 +92,6 @@ public class Receiver {
             // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum()){
                 Segment resend = sequenceToSegment.get(lastSeqAcked);
-                // Segment resend = sequenceToSegment.get(nextByteExpected-1);
-
                 receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
                 continue;
             }
@@ -102,7 +102,7 @@ public class Receiver {
                 fs.write(current.getPayload());
                 timestamp = current.getTimestamp();
                 lastSeqAcked = current.getSeqNum();
-                nextByteExpected = (nextByteExpected > 0) ? nextByteExpected + current.getLength() : 1;
+                nextByteExpected = nextByteExpected + current.getLength();
             }
             byte[] data = new byte[0];
             receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, timestamp, 0, ACK, data);
