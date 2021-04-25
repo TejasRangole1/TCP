@@ -9,12 +9,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.text.Segment;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -32,9 +30,6 @@ public class Sender {
     private long eRTT;
     private long eDev;
 
-    private int port;
-    private int remotePort;
-    private String remoteIp;
     private int sws;
     private int MTU;
 
@@ -48,53 +43,56 @@ public class Sender {
     private boolean finished = false;
     // min-heap of byte sequence numbers representing packets that have been written but not sent
     private PriorityQueue<Segment> senderQueue;
+    // queue storing the packets that were sent
+    private ConcurrentLinkedDeque<Segment> sentPackets;
     private Thread senderThread;
     private Thread receiveThread;
     private Thread timeoutThread;
     private DatagramSocket socket;
+    private Segment lastSegmentAcked;
     private ReentrantLock lock;
     private Utility senderUtility;
     // maps sequence numbers to segments
-    private TreeMap<Integer, Segment> sequenceToSegment;
-    // maps segment number to timeout thread
-    private ConcurrentSkipListMap<Integer, SenderTimeout> sequenceToTimeout;
+    private Map<Integer, Segment> sequenceToSegment;
     // keeps track of the number of acks for a particular ackNum
     private int totalAcks;
 
     private int ackNum = 0;
 
-    private class SenderTimeout extends Thread{
-
-        private int sequence;
-
-        public SenderTimeout(int seqNum) {
-            sequence = seqNum;
-        }
-
-        public int getSequence() {
-            return sequence;
-        }
+    private class SenderTimeout implements Runnable {
+        
+        int localTimeout = timeout;
 
         @Override
         public void run() {
-            try {
-                Thread.sleep(timeout);
-                // resending timed out segments
-                lock.lock();
-                Integer key = sequence;
-                while(key != null && key <= lastByteSent) {
-                    senderQueue.add(sequenceToSegment.get(key));
-                    key = sequenceToSegment.higherKey(key);
+            // TODO Auto-generated method stub
+            while(!finished) {
+                Thread.sleep(localTimeout);
+                try {
+                    lock.lock();
+                    if(!sentPackets.isEmpty()) {
+                        // check if the oldest sent packet has timed out
+                        if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout) {
+                            int timedOutSequence = sentPackets.peek().getSeqNum();
+                            while(sentPackets.peek().getSeqNum() >= timedOutSequence) {
+                                senderQueue.add(sentPackets.poll());
+                            }
+                            // resetting timeout since queue is empty
+                            localTimeout = timeout;
+                        } else {
+                            // computing new time to sleep
+                            localTimeout = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
+                        }
+                    }
+                    else {
+                        localTimeout = timeout;
+                    }
+                } finally {
+                    lock.unlock();
                 }
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                lock.unlock();
-                return;
-            } finally {
-                lock.unlock();
             }
-                        
         }
+        
     }
 
     private class SendingThread implements Runnable {
@@ -123,6 +121,10 @@ public class Sender {
          * @throws IOException
          */
         public void dataTransfer() throws IOException {
+            byte[] payload = new byte[0];
+            long timestamp = System.nanoTime();
+            Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
+            senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
                 // we also add to queue if there are no packets in the sliding window
@@ -136,24 +138,22 @@ public class Sender {
                         }
                     }
                     byte[] data = writeData();
+                    timestamp = System.nanoTime();
                     int sequence = lastByteRead - data.length + 1;
-                    Segment segment = new Segment(sequence, 1, System.nanoTime(), data.length, DATA, data);
+                    Segment segment = new Segment(sequence, 1, timestamp, data.length, DATA, (short) 0, data);
                     senderQueue.add(segment);
                 }
                 // send packet
+                
                 if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
                     toSend.updateTimestamp();
                     sequenceToSegment.put(toSend.getSeqNum(), toSend);
-                    // create a timeout thread for this segment
-                    if(!sequenceToTimeout.containsKey(toSend.getSeqNum())) { 
-                        SenderTimeout timeoutThread = new SenderTimeout(toSend.getSeqNum());
-                        sequenceToTimeout.put(toSend.getSeqNum(), timeoutThread);
-                        timeoutThread.start();
-                    }
                     lastByteSent += toSend.getLength();
-                    senderUtility.sendPacket(toSend.getSeqNum(), 1, toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(), toSend.getPayload());
+                    sentPackets.add(toSend);
+                    senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
+                    toSend.getChecksum(), toSend.getPayload());
                 }
             }
         }
@@ -194,8 +194,9 @@ public class Sender {
         public void startConnection() throws IOException{
             byte[] data = new byte[0]; 
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, data);
-            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+            Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, (short) 0, data);
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
@@ -209,65 +210,63 @@ public class Sender {
                 } catch (SocketTimeoutException e) {
                     // update timestamp before resending
                     outgoingSegment.updateTimestamp();
-                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), 
+            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
                 }
             }
             socket.setSoTimeout(0);
             senderThread.start();
+            timeoutThread.start();
         }
 
         public void dataTransfer() throws IOException{
-            Segment incomingSegment;
             while(!finished) {
-                incomingSegment = senderUtility.receivePacketSender();
+                lastSegmentAcked = senderUtility.receivePacketSender();
                 // indicates that the checksum does not match and therefore we drop the packet
-                if (incomingSegment == null) {
+                if(lastSegmentAcked == null) {
                     continue;
                 }
                 // received an ack for a packet that has already been acked 
-                else if(ackNum > incomingSegment.getAck()){
+                else if(ackNum > lastSegmentAcked.getAckNum()){
                     continue;
                 }
                 // received a duplicate ack
-                else if(ackNum == incomingSegment.getAck()) {
+                else if(ackNum == lastSegmentAcked.getAckNum()) {
                     totalAcks++;
                     // three-duplicate acks, add segment to be resent
                     if(totalAcks >= 3) {
-                        // must acquire lock in order to stop a thread
+                        totalAcks = 0;
                         try {
                             lock.lock();
-                            sequenceToTimeout.get(ackNum).interrupt();
-                            sequenceToTimeout.remove(ackNum);
-                        } catch (Exception e) {
-                            //TODO: handle exception
-                            lock.unlock();
+                            Segment segmentToResend = sequenceToSegment.get(ackNum);
+                            sentPackets.remove(segmentToResend);
+                            senderQueue.add(segmentToResend);
                         } finally {
                             lock.unlock();
                         }
-                        senderQueue.add(sequenceToSegment.get(ackNum));
-                        totalAcks = 0;
                         continue;
                     }
                 }
                 // received an ack for a new segment
                 else {
-                    ackNum = incomingSegment.getAck();
+                    ackNum = lastSegmentAcked.getAckNum();
                     totalAcks = 1;
                 }
                 try {
                     lock.lock();
-                    Integer key = lastByteAcked + 1;
-                    // stopping timeout threads that have been acked
-                    while(key < ackNum) {
-                        sequenceToTimeout.get(key).interrupt();
-                        sequenceToTimeout.remove(key);
-                        key = sequenceToTimeout.higherKey(key);
+                    // removing all acked segments from queue
+                    Iterator<Segment> it = sentPackets.iterator();
+                    while(it.hasNext()) {
+                        Segment current = it.next();
+                        if(current.getSeqNum() < ackNum) {
+                            it.remove();
+                        }
                     }
                 } finally {
                     lock.unlock();
                 }
                 lastByteAcked = ackNum - 1;
-                updateTimeout(ackNum, incomingSegment.getTimestamp());
+                updateTimeout(ackNum, lastSegmentAcked.getTimestamp());
                 if(lastByteAcked == fileBytes.length) {
                     finished = true;
                 }
@@ -295,17 +294,19 @@ public class Sender {
         this.MTU = mtu;
         this.sws = windowSize * MTU;
         this.socket = new DatagramSocket(remotePort);
-        this.lock = new ReentrantLock();
+        this.lock = new ReentrantLock(true);
         senderUtility = new Utility(MTU, remoteIp, remotePort, socket);
         senderQueue = new PriorityQueue<>((a, b) -> (a.getSeqNum() != b.getSeqNum()) ? a.getSeqNum() - b.getSeqNum() : a.getLength() - b.getLength());
-        sequenceToSegment = new TreeMap<>();
-        sequenceToTimeout = new ConcurrentSkipListMap<>();
+        sentPackets = new ConcurrentLinkedDeque<>();
+        sequenceToSegment = new HashMap<>();
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
+        SenderTimeout senderTimeout = new SenderTimeout();
         Path path = Paths.get(filepath);
         fileBytes = Files.readAllBytes(path);
         senderThread = new Thread(senderRunnable, "Sender Thread");
         receiveThread = new Thread(receiverRunnable, "Receiver Thread");
+        timeoutThread = new Thread(senderTimeout, "Timeout Thread");
         receiveThread.start();
     }
 
