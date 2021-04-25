@@ -122,7 +122,7 @@ public class Sender {
         public void dataTransfer() throws IOException {
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(0, 0, timestamp, payload.length, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(1, 1, timestamp, payload.length, ACK, (short) 0, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
@@ -151,8 +151,7 @@ public class Sender {
                     sequenceToSegment.put(toSend.getSeqNum(), toSend);
                     lastByteSent += toSend.getLength();
                     sentPackets.add(toSend);
-                    senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(),
-                    toSend.getChecksum(), toSend.getPayload());
+                    senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(), toSend.getPayload());
                 }
             }
         }
@@ -194,8 +193,7 @@ public class Sender {
             byte[] data = new byte[0]; 
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(0, 0, timestamp, data.length, SYN, (short) 0, data);
-            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
             socket.setSoTimeout(5000);
             while(!established) {
                 try {
@@ -209,8 +207,7 @@ public class Sender {
                 } catch (SocketTimeoutException e) {
                     // update timestamp before resending
                     outgoingSegment.updateTimestamp();
-                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), 
-            outgoingSegment.getChecksum(), outgoingSegment.getPayload());
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
                 }
             }
             socket.setSoTimeout(0);
