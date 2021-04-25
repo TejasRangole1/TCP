@@ -226,11 +226,11 @@ public class Sender {
                     continue;
                 }
                 // received an ack for a packet that has already been acked 
-                else if(ackNum > lastSegmentAcked.getAckNum()){
+                else if(ackNum > lastSegmentAcked.getAck()){
                     continue;
                 }
                 // received a duplicate ack
-                else if(ackNum == lastSegmentAcked.getAckNum()) {
+                else if(ackNum == lastSegmentAcked.getAck()) {
                     totalAcks++;
                     // three-duplicate acks, add segment to be resent
                     if(totalAcks >= 3) {
@@ -248,7 +248,7 @@ public class Sender {
                 }
                 // received an ack for a new segment
                 else {
-                    ackNum = lastSegmentAcked.getAckNum();
+                    ackNum = lastSegmentAcked.getAck();
                     totalAcks = 1;
                 }
                 try {
