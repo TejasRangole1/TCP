@@ -268,7 +268,7 @@ public class Sender {
                 }
                 lastByteAcked.set(ackNum - 1);
                 updateTimeout(ackNum, lastSegmentAcked.getTimestamp());
-                if(lastByteAcked == fileBytes.length) {
+                if(lastByteAcked.get() == fileBytes.length) {
                     finished = true;
                 }
             }
