@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -34,7 +35,7 @@ public class Sender {
 
     private String filepath;
     private int lastByteSent = 0;
-    private int lastByteAcked = 0;
+    private AtomicInteger lastByteAcked;
     private int lastByteRead = 0;
     private byte[] fileBytes;
 
@@ -104,9 +105,9 @@ public class Sender {
          */
         public byte[] writeData(){
             int endIndex = lastByteRead;
-            if(sws - (lastByteSent - lastByteAcked) < MTU && sws - (lastByteSent - lastByteAcked) > 0) {
+            if(sws - (lastByteSent - lastByteAcked.get()) < MTU && sws - (lastByteSent - lastByteAcked.get()) > 0) {
                 // create as much data as fits in the sliding window
-                endIndex += sws - (lastByteSent - lastByteAcked);
+                endIndex += sws - (lastByteSent - lastByteAcked.get());
             }
             else {
                 // create a packet with one MTU
@@ -128,10 +129,10 @@ public class Sender {
             long timestamp = System.nanoTime();
             Segment outgoingSegment = new Segment(1, 1, timestamp, payload.length, ACK, payload);
             senderQueue.add(outgoingSegment);
-            while(lastByteAcked < fileBytes.length) {
+            while(lastByteAcked.get() < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
                 // we also add to queue if there are no packets in the sliding window
-                while((lastByteSent - lastByteAcked >= sws || senderQueue.isEmpty()) && lastByteRead < fileBytes.length) {
+                while((lastByteSent - lastByteAcked.get() >= sws || senderQueue.isEmpty()) && lastByteRead < fileBytes.length) {
                     if(!senderQueue.isEmpty()) {
                         Segment top = senderQueue.peek();
                         // This indicates that a previously sent packet must be resent
@@ -148,7 +149,7 @@ public class Sender {
                 }
                 // send packet
                 
-                if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked < sws) {
+                if(!senderQueue.isEmpty() && lastByteSent - lastByteAcked.get() < sws) {
                     Segment toSend = senderQueue.poll();
                     toSend.incrementTransmissions();
                     toSend.updateTimestamp();
@@ -296,6 +297,7 @@ public class Sender {
         senderQueue = new PriorityQueue<>((a, b) -> (a.getSeqNum() != b.getSeqNum()) ? a.getSeqNum() - b.getSeqNum() : a.getLength() - b.getLength());
         sentPackets = new ConcurrentLinkedDeque<>();
         sequenceToSegment = new HashMap<>();
+        lastByteAcked = new AtomicInteger(0);
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
