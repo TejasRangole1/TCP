@@ -66,28 +66,32 @@ public class Sender {
         public void run() {
             // TODO Auto-generated method stub
             while(!finished) {
-                Thread.sleep(localTimeout);
                 try {
-                    lock.lock();
-                    if(!sentPackets.isEmpty()) {
-                        // check if the oldest sent packet has timed out
-                        if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout) {
-                            int timedOutSequence = sentPackets.peek().getSeqNum();
-                            while(sentPackets.peek().getSeqNum() >= timedOutSequence) {
-                                senderQueue.add(sentPackets.poll());
+                    Thread.sleep(localTimeout);
+                    try {
+                        lock.lock();
+                        if(!sentPackets.isEmpty()) {
+                            // check if the oldest sent packet has timed out
+                            if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout) {
+                                int timedOutSequence = sentPackets.peek().getSeqNum();
+                                while(sentPackets.peek().getSeqNum() >= timedOutSequence) {
+                                    senderQueue.add(sentPackets.poll());
+                                }
+                                // resetting timeout since queue is empty
+                                localTimeout = timeout;
+                            } else {
+                                // computing new time to sleep
+                                localTimeout = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
                             }
-                            // resetting timeout since queue is empty
-                            localTimeout = timeout;
-                        } else {
-                            // computing new time to sleep
-                            localTimeout = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
                         }
+                        else {
+                            localTimeout = timeout;
+                        }
+                    } finally {
+                        lock.unlock();
                     }
-                    else {
-                        localTimeout = timeout;
-                    }
-                } finally {
-                    lock.unlock();
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
