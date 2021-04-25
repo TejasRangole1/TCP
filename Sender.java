@@ -282,9 +282,6 @@ public class Sender {
 
 
     public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize, String filename) throws SocketException, UnknownHostException, IOException{
-        this.port = port;
-        this.remotePort = remotePort;
-        this.remoteIp = remoteIp;
         this.filepath = filename;
         this.timeout = 5000000000L;
         this.MTU = mtu;
