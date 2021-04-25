@@ -26,7 +26,7 @@ public class Sender {
     private final int FIN_ACK = 3;
     private final int DATA = 0;
 
-    private long timeout = 5000000000L;
+    private AtomicLong timeout;
     private long eRTT;
     private long eDev;
 
@@ -61,7 +61,7 @@ public class Sender {
 
     private class SenderTimeout implements Runnable {
         
-        long localTimeout = timeout;
+        long localTimeout = timeout.get();
 
         @Override
         public void run() {
@@ -82,7 +82,8 @@ public class Sender {
                                 localTimeout = timeout;
                             } else {
                                 // computing new time to sleep
-                                localTimeout = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
+                                long timeoutNS = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
+                                localTimeout = TimeUnit.NANOSECONDS.toMillis(timeoutNS);
                             }
                         }
                         else {
@@ -183,14 +184,14 @@ public class Sender {
             if(sequence == 0) {
                 eRTT = System.nanoTime() - timestamp;
                 eDev = 0;
-                timeout =  2 * eRTT;
+                timeout.set(2 * eRTT);
             }
             else {
                 long sRTT = System.nanoTime() - timestamp;
                 long sDev = sRTT - eRTT;
                 eRTT = (long) (0.875 * eRTT) +  (long) (1 - 0.875) * sRTT;
                 eDev = (long) (0.75 * eDev) + (long) (1 - 0.75) * sDev;
-                timeout = eRTT + 4 * eDev;
+                timeout.set(eRTT + 4 * eDev);
             }
         }
 
@@ -288,7 +289,6 @@ public class Sender {
 
     public Sender(int port, int remotePort, String remoteIp, int mtu, int windowSize, String filename) throws SocketException, UnknownHostException, IOException{
         this.filepath = filename;
-        this.timeout = 5000000000L;
         this.MTU = mtu;
         this.sws = windowSize * MTU;
         this.socket = new DatagramSocket(remotePort);
@@ -298,6 +298,7 @@ public class Sender {
         sentPackets = new ConcurrentLinkedDeque<>();
         sequenceToSegment = new HashMap<>();
         lastByteAcked = new AtomicInteger(0);
+        timeout = new AtomicLong(5000000000L);
         Runnable senderRunnable = new SendingThread();
         Runnable receiverRunnable = new ReceiveThread();
         SenderTimeout senderTimeout = new SenderTimeout();
