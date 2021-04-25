@@ -122,7 +122,7 @@ public class Sender {
         public void dataTransfer() throws IOException {
             byte[] payload = new byte[0];
             long timestamp = System.nanoTime();
-            Segment outgoingSegment = new Segment(1, 1, timestamp, payload.length, ACK, (short) 0, payload);
+            Segment outgoingSegment = new Segment(1, 1, timestamp, payload.length, ACK, payload);
             senderQueue.add(outgoingSegment);
             while(lastByteAcked < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
@@ -139,7 +139,7 @@ public class Sender {
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
                     int sequence = lastByteRead - data.length + 1;
-                    Segment segment = new Segment(sequence, 1, timestamp, data.length, DATA, (short) 0, data);
+                    Segment segment = new Segment(sequence, 1, timestamp, data.length, DATA, data);
                     senderQueue.add(segment);
                 }
                 // send packet
