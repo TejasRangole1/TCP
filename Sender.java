@@ -168,7 +168,6 @@ public class Sender {
 
             // all bytes acked
             endConnection();
-            finished = true;
             timeoutThread.interrupt();
             System.out.println("Connection successfully terminated");
 
@@ -282,13 +281,9 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
-            socket.setSoTimeout(5000);
             while(!finished) {
-                try {
-                    lastSegmentAcked = senderUtility.receivePacketSender();
-                } catch (SocketTimeoutException e){
-                    continue;
-                }
+                lastSegmentAcked = senderUtility.receivePacketSender();
+   
                 // indicates that the checksum does not match and therefore we drop the packet
                 if(lastSegmentAcked == null) {
                     continue;
