@@ -142,7 +142,7 @@ public class Sender {
             while(lastByteAcked.get() < fileBytes.length) {
                 // while there is no room to send packet, read data from file and add it to the queue
                 // we also add to queue if there are no packets in the sliding window
-                while((lastByteSent - lastByteAcked.get() >= sws || senderQueue.isEmpty()) && lastByteRead < fileBytes.length) {
+                while(lastByteSent - lastByteAcked.get() >= sws || senderQueue.isEmpty()) {
                     if(!senderQueue.isEmpty()) {
                         Segment top = senderQueue.peek();
                         // This indicates that a previously sent packet must be resent
@@ -150,6 +150,9 @@ public class Sender {
                             lastByteSent -= top.getLength();
                             continue;
                         }
+                    }
+                    if(lastByteRead >= fileBytes.length) {
+                        continue;
                     }
                     byte[] data = writeData();
                     timestamp = System.nanoTime();
