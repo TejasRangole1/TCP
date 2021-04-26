@@ -2,6 +2,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.PriorityQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,9 +18,11 @@ public class Receiver {
     private final int SYN = 4;
     private final int FIN = 2;
     private final int ACK = 1;
+    private final int FIN_ACK = 3;
+
     private final int SYN_ACK = 5;
     // NONE indicates that it segment is not SYN, ACK, or FIN
-    private final int NONE = 3;
+    // private final int NONE = 3;
     private boolean established = false;
     private boolean finished = false;
     private Utility receiverUtility;
@@ -81,6 +84,11 @@ public class Receiver {
             if (incomingSegment == null) {
                 continue;
             }
+
+            if (incomingSegment.getFlag() == FIN){ 
+                endConnection(incomingSegment.getSeqNum()+1);
+                return;
+            }
             receiverQueue.add(incomingSegment);
             // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum()){
@@ -100,6 +108,32 @@ public class Receiver {
             byte[] data = new byte[0];
             receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, timestamp, 0, ACK, data);
         }
+    }
+
+    public void endConnection(int ack) throws IOException{
+        byte[] data = new byte[0]; 
+        long timestamp = System.nanoTime();
+        Segment outgoingSegment = new Segment(byteSequenceNumber, ack, timestamp, data.length, FIN_ACK, data);
+        receiverUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+        socket.setSoTimeout(5000);
+        boolean established = false;
+        while(!established) {
+            try {
+                Segment incomingSegment = receiverUtility.receivePacketSender();
+                if (incomingSegment == null){
+                    continue;
+                } 
+                else if(incomingSegment.getFlag() == ACK && incomingSegment.getAck() == byteSequenceNumber + 1)
+                    established = true;
+            } catch (SocketTimeoutException e) {
+                // update timestamp before resending
+                outgoingSegment.updateTimestamp();
+                receiverUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+            }
+        }
+
+        System.out.println("Connection successfully terminated");
+
     }
 
 }

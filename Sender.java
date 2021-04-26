@@ -96,6 +96,11 @@ public class Sender {
                     e.printStackTrace();
                 }
             }
+
+            System.out.println("timeoutThread(): done");
+
+
+
         }
         
     }
@@ -160,12 +165,67 @@ public class Sender {
                     senderUtility.sendPacket(toSend.getSeqNum(), toSend.getAck(), toSend.getTimestamp(), toSend.getLength(), toSend.getFlag(), toSend.getPayload());
                 }
             }
+
+            // all bytes acked
+            endConnection();
+            finished = true;
+            timeoutThread.interrupt();
+            System.out.println("Connection successfully terminated");
+
+        }
+
+        public void endConnection() throws IOException{
+            byte[] data = new byte[0]; 
+            long timestamp = System.nanoTime();
+            Segment outgoingSegment = new Segment(lastSegmentAcked.getSeqNum(), 0, timestamp, data.length, FIN, data);
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+            socket.setSoTimeout(5000);
+            Segment incomingSegment = null;
+            established = false;
+            while(!established) {
+                try {
+                    incomingSegment = senderUtility.receivePacketSender();
+                    // checksums dont match
+                    if (incomingSegment == null) {
+                        continue;
+                    } 
+                    else if(incomingSegment.getFlag() == FIN_ACK && incomingSegment.getAck() == lastSegmentAcked.getSeqNum() + 1)
+                        established = true;
+                } catch (SocketTimeoutException e) {
+                    // update timestamp before resending
+                    outgoingSegment.updateTimestamp();
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+                }
+            }
+
+            // send final ack
+
+            ackNum = incomingSegment.getSeqNum() +1;
+            timestamp = System.nanoTime();
+            outgoingSegment = new Segment(0, ackNum, timestamp, data.length, ACK, data);
+            senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), outgoingSegment.getTimestamp(), outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+
+            established = false;
+            while(!established) {
+                try {
+                    incomingSegment = senderUtility.receivePacketSender();
+                    // keep sending as long as we're receiving something
+                    outgoingSegment.updateTimestamp();
+                    senderUtility.sendPacket(outgoingSegment.getSeqNum(), outgoingSegment.getAck(), timestamp, outgoingSegment.getLength(), outgoingSegment.getFlag(), outgoingSegment.getPayload());
+                    
+                } catch (SocketTimeoutException e) {
+                    // Done. didn't receive anything
+                    established = true;
+                    
+                }
+            }
         }
 
         @Override
         public void run() {
             try {
                 dataTransfer();
+                System.out.println("SendingThread(): dataTransfer() done");
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -222,8 +282,13 @@ public class Sender {
         }
 
         public void dataTransfer() throws IOException{
+            socket.setSoTimeout(5000);
             while(!finished) {
-                lastSegmentAcked = senderUtility.receivePacketSender();
+                try {
+                    lastSegmentAcked = senderUtility.receivePacketSender();
+                } catch (SocketTimeoutException e){
+                    continue;
+                }
                 // indicates that the checksum does not match and therefore we drop the packet
                 if(lastSegmentAcked == null) {
                     continue;
@@ -279,6 +344,7 @@ public class Sender {
             try {
                 startConnection();
                 dataTransfer();
+                System.out.println("ReecieveThread(): dataTransfer() done");
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
