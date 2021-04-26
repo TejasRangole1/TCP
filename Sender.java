@@ -61,7 +61,7 @@ public class Sender {
 
     private class SenderTimeout implements Runnable {
         
-        long localTimeout = timeout.get();
+        long localTimeout = TimeUnit.NANOSECONDS.toMillis(timeout.get());
 
         @Override
         public void run() {
