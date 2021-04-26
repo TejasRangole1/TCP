@@ -70,12 +70,15 @@ public class Sender {
                 try {
                     Thread.sleep(localTimeout);
                     try {
+                        System.out.println(Thread.currentThread().getName() + " about to acquire lock");
                         lock.lock();
+                        System.out.println(Thread.currentThread().getName() + " acquired lock");
                         if(!sentPackets.isEmpty()) {
                             // check if the oldest sent packet has timed out
                             if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout.get()) {
                                 int timedOutSequence = sentPackets.peek().getSeqNum();
-                                while(sentPackets.peek().getSeqNum() >= timedOutSequence) {
+                                System.out.println(Thread.currentThread().getName() + " Segment: " + timedOutSequence + " timed out");
+                                while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() >= timedOutSequence) {
                                     senderQueue.add(sentPackets.poll());
                                 }
                                 // resetting timeout since queue is empty
@@ -91,6 +94,7 @@ public class Sender {
                         }
                     } finally {
                         lock.unlock();
+                        System.out.println(Thread.currentThread().getName() + " released lock");
                     }
                 } catch(InterruptedException e) {
                     e.printStackTrace();
