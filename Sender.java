@@ -12,7 +12,7 @@ import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-
+import java.util.concurrent.atomic.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -73,21 +73,21 @@ public class Sender {
                         lock.lock();
                         if(!sentPackets.isEmpty()) {
                             // check if the oldest sent packet has timed out
-                            if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout) {
+                            if(System.nanoTime() - sentPackets.peek().getTimestamp() >= timeout.get()) {
                                 int timedOutSequence = sentPackets.peek().getSeqNum();
                                 while(sentPackets.peek().getSeqNum() >= timedOutSequence) {
                                     senderQueue.add(sentPackets.poll());
                                 }
                                 // resetting timeout since queue is empty
-                                localTimeout = timeout;
+                                localTimeout = timeout.get();
                             } else {
                                 // computing new time to sleep
-                                long timeoutNS = timeout - (System.nanoTime() - sentPackets.peek().getTimestamp());
+                                long timeoutNS = timeout.get() - (System.nanoTime() - sentPackets.peek().getTimestamp());
                                 localTimeout = TimeUnit.NANOSECONDS.toMillis(timeoutNS);
                             }
                         }
                         else {
-                            localTimeout = timeout;
+                            localTimeout = timeout.get();
                         }
                     } finally {
                         lock.unlock();
