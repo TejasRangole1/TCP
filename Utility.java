@@ -79,13 +79,12 @@ public class Utility {
         long timestamp = bb.getLong();
         int length = bb.getInt();
         int flag = length & ((1 << 3) - 1);
-        length >>= 3;
+        int length1 = length >> 3; //real length
         short checksum = bb.getShort();
-        byte[] payload = new byte[length];
+        byte[] payload = new byte[length1];
         bb.get(payload);
 
         short computedChecksum = computeChecksum(payload, acknowledgement, sequence, timestamp, length);
-        //System.out.println("Utility.java: deserialize(): computedChecksum: " + computedChecksum);
         if (computedChecksum != checksum){
             System.out.println("checksums dont match");
             return null;
@@ -94,13 +93,14 @@ public class Utility {
         }
 
         String flagOutput = getFlagOutput(flag);
-        Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length, flag, payload);
-        System.out.println("rcv " + System.nanoTime() + " " + flagOutput + " " + sequence + " " + length + " " + acknowledgement);
+        Segment incomingSegment = new Segment(sequence, acknowledgement, timestamp, length1, flag, payload);
+        System.out.println("rcv " + System.nanoTime() + " " + flagOutput + " " + sequence + " " + length1 + " " + acknowledgement);
         return incomingSegment;
     }
 
     public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, byte[] payloadData) throws IOException{
-        short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length);
+        int length1 = (length << 3) | flag;
+        short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length1);
         //System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
         byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, computedChecksum, payloadData);
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
