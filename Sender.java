@@ -79,7 +79,9 @@ public class Sender {
                                 int timedOutSequence = sentPackets.peek().getSeqNum();
                                 System.out.println(Thread.currentThread().getName() + " Segment: " + timedOutSequence + " timed out");
                                 while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() >= timedOutSequence) {
+                                    int debug = sentPacket.peek().getSeqNum();
                                     senderQueue.add(sentPackets.poll());
+                                    System.out.println(Thread.currentThread().getName() + " added Segment: " + debug + " to senderQueue");
                                 }
                                 // resetting timeout since queue is empty
                                 localTimeout = timeout.get();
@@ -145,6 +147,7 @@ public class Sender {
                 while(lastByteSent - lastByteAcked.get() >= sws || senderQueue.isEmpty()) {
                     if(!senderQueue.isEmpty()) {
                         Segment top = senderQueue.peek();
+                        System.out.println(Thread.currentThread().getName() + " top of senderQueue: " + top.getSeqNum());
                         // This indicates that a previously sent packet must be resent
                         if(top.getSeqNum() + top.getLength() - 1 < lastByteSent) {
                             lastByteSent -= top.getLength();
