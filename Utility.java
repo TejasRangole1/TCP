@@ -59,7 +59,7 @@ public class Utility {
         return "A D";
     }
 
-    private byte[] serialize(int byteSeqNum, int ack, long timestamp, int length, int flag, short checksum, byte[] payloadData) {
+    private byte[] serialize(int byteSeqNum, int ack, long timestamp, int length, int flag, byte[] payloadData) {
         byte[] data = new byte[HEADER_SIZE + MTU];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.putInt(byteSeqNum);
@@ -67,6 +67,7 @@ public class Utility {
         bb.putLong(timestamp);
         length  = (length << 3) | flag;
         bb.putInt(length);
+        short checksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length);
         bb.putShort(checksum);
         bb.put(payloadData);
         return data;
@@ -99,10 +100,9 @@ public class Utility {
     }
 
     public void sendPacket(int byteSeqNum, int ack, long timestamp, int length, int flag, byte[] payloadData) throws IOException{
-        int length1 = (length << 3) | flag;
-        short computedChecksum = computeChecksum(payloadData, ack, byteSeqNum, timestamp, length1);
+        
         //System.out.println("Utility.java: sendPacket(): computedChecksum = " + computedChecksum);
-        byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag, computedChecksum, payloadData);
+        byte[] payload = serialize(byteSeqNum, ack, timestamp, length, flag,payloadData);
         DatagramPacket outgoingPacket = new DatagramPacket(payload, payload.length, remoteIP, remotePort);
         socket.send(outgoingPacket);
         String flagOutput = getFlagOutput(flag);

@@ -95,8 +95,19 @@ public class Receiver {
                 Segment resend = sequenceToSegment.get(lastSeqAcked);
                 receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
                 continue;
+            } 
+            // else if (nextByteExpected > incomingSegment.getSeqNum()){
+            //     Segment resend = sequenceToSegment.get(lastSeqAcked);
+            //     receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
+            //     continue;
+            // }
+            long timestamp = incomingSegment.getTimestamp();
+            
+          
+            while (!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() != nextByteExpected){
+                receiverQueue.poll();
             }
-            long timestamp = 0;
+            
             // performing cumulative ack
             while(!receiverQueue.isEmpty() && receiverQueue.peek().getSeqNum() == nextByteExpected) {
                 Segment current = receiverQueue.poll();
@@ -106,6 +117,7 @@ public class Receiver {
                 nextByteExpected = nextByteExpected + current.getLength();
             }
             byte[] data = new byte[0];
+            System.out.println("nextByteExpected: " + nextByteExpected);
             receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, timestamp, 0, ACK, data);
         }
     }
