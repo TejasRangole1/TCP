@@ -79,7 +79,7 @@ public class Sender {
                                 int timedOutSequence = sentPackets.peek().getSeqNum();
                                 System.out.println(Thread.currentThread().getName() + " Segment: " + timedOutSequence + " timed out");
                                 while(!sentPackets.isEmpty() && sentPackets.peek().getSeqNum() >= timedOutSequence) {
-                                    int debug = sentPacket.peek().getSeqNum();
+                                    int debug = sentPackets.peek().getSeqNum();
                                     senderQueue.add(sentPackets.poll());
                                     System.out.println(Thread.currentThread().getName() + " added Segment: " + debug + " to senderQueue");
                                 }
@@ -155,6 +155,8 @@ public class Sender {
                         }
                     }
                     if(lastByteRead >= fileBytes.length) {
+                        if (lastByteAcked.get() == fileBytes.length)
+                            continue;
                         continue;
                     }
                     byte[] data = writeData();
