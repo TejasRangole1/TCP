@@ -156,7 +156,7 @@ public class Sender {
                     }
                     if(lastByteRead >= fileBytes.length) {
                         if (lastByteAcked.get() == fileBytes.length)
-                            continue;
+                            break;
                         continue;
                     }
                     byte[] data = writeData();

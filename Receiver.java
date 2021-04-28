@@ -92,17 +92,10 @@ public class Receiver {
             receiverQueue.add(incomingSegment);
             // received a packet out of order, send ack for last byte contigous byte received
             if(nextByteExpected < incomingSegment.getSeqNum()){
-                // receiverQueue.add(incomingSegment);
                 Segment resend = sequenceToSegment.get(lastSeqAcked);
                 receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
                 continue;
             } 
-            // else if (nextByteExpected > incomingSegment.getSeqNum()){
-            //     Segment resend = sequenceToSegment.get(lastSeqAcked);
-            //     receiverUtility.sendPacket(byteSequenceNumber, nextByteExpected, resend.getTimestamp(), 0, ACK, resend.getPayload());
-            //     continue;
-            // }
-            // receiverQueue.add(incomingSegment);
 
             long timestamp = sequenceToSegment.get(lastSeqAcked).getTimestamp();
             
